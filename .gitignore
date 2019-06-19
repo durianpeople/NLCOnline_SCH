@@ -1,0 +1,37 @@
+ 
+#Ignoring PuzzleOS stuff
+applications/accounts
+applications/admin
+applications/ajax_img
+applications/bootstrap
+applications/fa
+applications/menus
+applications/pg_control
+applications/phpmailer
+applications/search_box
+applications/accounts
+applications/tinymce
+bootstrap/*
+configs/*
+public/*
+storage/*
+templates/blank
+templates/niceadmin
+templates/system
+*.log
+puzzleos
+puzzleworker
+*.sample
+*.md
+LICENSE/*
+
+#Ignoring editor stuff
+.codelite
+*.phprj
+*.workspace
+
+.vscode
+*.code-workspace
+
+#KDE
+.directory
