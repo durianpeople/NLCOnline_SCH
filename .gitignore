@@ -23,6 +23,7 @@ puzzleos
 puzzleworker
 *.sample
 *.md
+!README.md
 LICENSE/*
 
 #Ignoring editor stuff
