@@ -3,18 +3,26 @@
 namespace NLC\Base;
 
 use NLC\Throwable\SesiNotFound;
-use NLC\Throwable\InvalidLength;
 use NLC\Throwable\InvalidTimeInterval;
-use NLC\Throwable\SesiNotStarted;
-use NLC\Throwable\SesiExpired;
 use Accounts;
 use NLC\Throwable\SesiNotDisabled;
-use NLC\Throwable\SesiNotEnabled;
-use DatabaseRowInput;
+use NLC\Throwable\AccessDenied;
+use NLC\Throwable\InvalidAction;
+use NLC\Throwable\SesiNotStarted;
 
+/**
+ * Sesi class
+ * 
+ * @property-read int $id
+ * @property string $name
+ * @property int $start_time
+ * @property int $end_time
+ * @property-read bool $enabled
+ * @property Questions $questions
+ */
 class Sesi
 {
-    private $handle;
+    private $id;
     private $name;
     private $start_time;
     private $end_time;
@@ -25,141 +33,154 @@ class Sesi
      * @var Questions $questions
      */
     private $questions = null;
-    private $enrolled;
-    private $answer;
-    private const TABLE = "app_nlc_sesi";
-    private const USERTABLE = "app_nlc_sesi_user";
 
-    public function __construct(string $handle)
+    #region Static
+    public static function create(string $name, int $start_time, int $end_time, bool $is_public)
     {
-        if (null !== $data = \Database::getRow(self::TABLE, "handle", $handle)) {
-            $this->handle = (string) $data['handle'];
+        if (!Accounts::authAccess(USER_AUTH_EMPLOYEE)) throw new AccessDenied;
+        if ($start_time > $end_time) throw new InvalidTimeInterval;
+        if (\Database::insert(
+            "app_nlc_sesi",
+            [
+                (new \DatabaseRowInput)
+                    ->setField("name", $name)
+                    ->setField("start_time", $start_time)
+                    ->setField("end_time", $end_time)
+                    ->setField("is_public", $is_public)
+            ]
+        )) {
+            return self::load(\Database::lastId());
+        } else return null;
+    }
+
+    public static function load(int $id)
+    {
+        return new self($id);
+    }
+    #endregion
+
+    private function __construct(int $id)
+    {
+        if(!Accounts::getAuthLevel(USER_AUTH_REGISTERED)) throw new AccessDenied;
+        if (null !== $data = \Database::getRow("app_nlc_sesi", "id", $id)) {
+            if ((bool) $data['is_public'] == false) throw new AccessDenied;
+            $this->id = (string) $data['id'];
             $this->name = $data['name'];
             $this->start_time = (int) $data['start_time'];
             $this->end_time = (int) $data['end_time'];
             $this->enabled = (bool) $data['enabled'];
-            if ($data['questions_handle'] != null) $this->questions = new Questions($data['questions_handle']);
-            if (empty($db = \Database::getRowByStatement(
-                self::USERTABLE,
-                "WHERE sesi_handle = '?' AND user_id = '?'",
-                $this->handle,
-                (int) Accounts::getUserId()
-            ))) {
-                $this->enrolled = false;
-                $this->answer = [];
-            } else {
-                $this->enrolled = true;
-                $this->answer = json_decode($db['answer']);
-            }
+            if ($data['questions_id'] != null) $this->questions = Questions::load($data['questions_id']);
         } else throw new SesiNotFound;
     }
 
-    public function assignQuestions(Questions $q)
+    public function __set($name, $value)
     {
-        if ($this->enabled == true) throw new SesiNotDisabled;
-        $this->questions = $q;
-        $this->commit();
+        switch ($name) {
+            case "start_time":
+                if (!Accounts::authAccess(USER_AUTH_EMPLOYEE)) throw new AccessDenied;
+                if ($this->enabled == true) throw new SesiNotDisabled;
+                $this->start_time = (int) $value;
+                $this->commit();
+                break;
+            case "end_time":
+                if (!Accounts::authAccess(USER_AUTH_EMPLOYEE)) throw new AccessDenied;
+                if ($this->enabled == true) throw new SesiNotDisabled;
+                $this->end_time = (int) $value;
+                $this->commit();
+                break;
+            case "questions":
+                if (!Accounts::authAccess(USER_AUTH_EMPLOYEE)) throw new AccessDenied;
+                if ($this->enabled == true) throw new SesiNotDisabled;
+                if (!($value instanceof Questions) && $value != null) throw new InvalidAction("Value is not of type Questions");
+                $this->questions = $value;
+                $this->commit();
+                break;
+        }
+    }
+
+    public function __get($name)
+    {
+        switch ($name) {
+            case "id":
+                return $this->id;
+            case "name":
+                return $this->name;
+            case "start_time":
+                return $this->start_time;
+            case "end_time":
+                return $this->end_time;
+            case "enabled":
+                return $this->enabled;
+            case "questions":
+                if (!Accounts::getAuthLevel(USER_AUTH_EMPLOYEE) && !$this->enrollCheck()) throw new AccessDenied;
+                return $this->questions;
+        }
     }
 
     public function removeQuestions()
     {
+        if (!Accounts::authAccess(USER_AUTH_EMPLOYEE)) throw new AccessDenied;
         if ($this->enabled == true) throw new SesiNotDisabled;
         $this->questions = null;
         $this->commit();
     }
 
-    public function getInfo(): array
-    {
-        $data['handle'] = $this->handle;
-        $data['name'] = $this->name;
-        $data['start_time'] = $this->start_time;
-        $data['end_time'] = $this->end_time;
-        $data['enrolled'] = $this->enrolled;
-        return $data;
-    }
-
     public function enable(): bool
     {
+        if (!Accounts::authAccess(USER_AUTH_EMPLOYEE)) throw new AccessDenied;
         $this->enabled = true;
         return $this->commit();
     }
 
     public function disable(): bool
     {
-        \Database::execute( // return value?
-            "DELETE * FROM app_nlc_sesi_user 
-            WHERE sesi_handle = '?' AND `user_id` = '?'",
-            $this->handle,
-            (int) Accounts::getUserId()
+        if (!Accounts::authAccess(USER_AUTH_EMPLOYEE)) throw new AccessDenied;
+        \Database::execute(
+            "DELETE FROM `app_nlc_sesi_user_log` 
+            WHERE sesi_id = '?'",
+            $this->id
         );
         $this->enabled = false;
         return $this->commit();
     }
 
-    public function enroll(): bool
+    public function enrollCheck(): bool
     {
         $crt = time();
-        if ($crt < $this->start_time) throw new SesiNotStarted;
-        if ($crt > $this->end_time) throw new SesiExpired;
-        if ($this->enabled == false) throw new SesiNotEnabled;
-        if ($this->enrolled == false) {
-            if (\Database::insert(
-                self::USERTABLE,
-                [
-                    (new \DatabaseRowInput)
-                        ->setField("sesi_handle", $this->handle)
-                        ->setField("user_id", (int) Accounts::getUserId())
-                        ->setField("answer", json_encode($this->answer))
-                ]
-            )) {
-                return true;
-            } else return false;
-        } else return true;
+        if ($crt < $this->start_time) return false;
+        if ($crt > $this->end_time) return false;
+        if ($this->enabled == false) return false;
+        return true;
     }
 
-    public function store(string $answer_json): bool
+    public function pushAnswer(int $number, int $answer)
     {
-        $this->answer = json_decode($answer_json);
-        \Database::execute( // return value?
-            "UPDATE app_nlc_sesi_user SET answer = '?' 
-            WHERE `sesi_handle` = '?' AND `user_id` = '?'",
-            json_encode($this->answer),
-            $this->handle,
-            (int) Accounts::getUserId()
-        );
-        return true;
+        if ($this->enrollCheck()) {
+            \Database::execute(
+                "INSERT INTO `app_nlc_sesi_user_log` (`sesi_id`, `user_id`, `number`, `answer`) 
+                VALUES ('?', '?', '?', '?') 
+                ON DUPLICATE KEY 
+                UPDATE answer = '?'",
+                $this->id,
+                Accounts::getUserId(),
+                $number,
+                $answer,
+                $answer
+            );
+        }
     }
 
     private function commit(): bool
     {
-        $q_fill = ($this->questions === null) ? null : $this->questions->getHandle();
+        $q_fill = ($this->questions === null) ? null : $this->questions->id;
         if (\Database::update(
-            self::TABLE,
+            "app_nlc_sesi",
             (new \DatabaseRowInput)
-                ->setField("questions_handle", $q_fill)
-                ->setField("enabled", $this->enabled),
-            "handle",
-            $this->handle
+                ->setField("questions_id", $q_fill)
+                ->setField("enabled", (int) $this->enabled),
+            "id",
+            $this->id
         )) return true;
         else return false;
-    }
-
-    public static function create(string $handle, string $name, int $start_time, int $end_time)
-    {
-        if (strlen($handle) > 25 || strlen($name) > 50) throw new InvalidLength;
-        if ($start_time > $end_time) throw new InvalidTimeInterval;
-        if (\Database::insert(
-            self::TABLE,
-            [
-                (new \DatabaseRowInput)
-                    ->setField("handle", $handle)
-                    ->setField("name", $name)
-                    ->setField("start_time", $start_time)
-                    ->setField("end_time", $end_time)
-                    ->setField("enabled", false)
-            ]
-        )) {
-            return true;
-        } else return false;
     }
 }

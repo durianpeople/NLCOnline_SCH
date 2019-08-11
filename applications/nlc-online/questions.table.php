@@ -1,7 +1,6 @@
 <?php
 return (new DatabaseTableBuilder)
-    ->addColumn('handle', 'VARCHAR(25)')
-    ->addColumn('question_json', 'TEXT')->allowNull()
-    ->addColumn('answer_key_json', 'TEXT')->allowNull()
+    ->addColumn('id', 'INT')->setAsPrimaryKey()->auto_increment()
+    ->addColumn('name', 'TEXT')
 
-    ->createIndex("q_uniq", ["handle"], "UNIQUE");
+    ->createIndex("q_uniq", ["id"], "UNIQUE");

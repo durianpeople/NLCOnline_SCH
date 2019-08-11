@@ -5,6 +5,6 @@ if ($appProp->isMainApp) {
     if (file_exists($controller_path) && is_file($controller_path)) {
         $appProp->bundle["view"] = "$request/" . require $controller_path;
     } else {
-        $appProp->bundle["view"] = "frontpage/" . require "controller/web/frontpage.php";
+        $appProp->bundle["view"] = "default/" . require "controller/web/default.php";
     }
 }

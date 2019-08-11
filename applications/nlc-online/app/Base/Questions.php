@@ -4,85 +4,90 @@ namespace NLC\Base;
 
 use NLC\Throwable\InvalidLength;
 use NLC\Throwable\QuestionsNotFound;
+use Accounts;
+use PuzzleError;
+use NLC\Throwable\AccessDenied;
+use DatabaseRowInput;
+use NLC\Base\Sesi;
 
+/**
+ * Questions class
+ * 
+ * @property-read int $id
+ * @property string $name
+ */
 class Questions
 {
-    private $handle;
-    private $question = [];
-    private $answer_key = [];
-    private const TABLE = "app_nlc_questions";
+    private $id;
+    private $name;
 
-    public function __construct(string $handle)
+    #region Static
+    public static function create(string $name)
     {
-        if (null !== $data = \Database::getRow(self::TABLE, "handle", $handle)) {
-            $this->handle = $data['handle'];
-            $this->question = json_decode($data['question_json']);
-            $this->answer_key = json_decode($data['answer_key_json']);
+        if (!Accounts::authAccess(USER_AUTH_EMPLOYEE)) throw new AccessDenied;
+        if (\Database::insert(
+            "app_nlc_questions",
+            [
+                (new \DatabaseRowInput)
+                    ->setField("name", $name)
+            ]
+        )) {
+            return self::load(\Database::lastId());
+        } else return null;
+    }
+
+    public static function load(int $id)
+    {
+        return new self($id);
+    }
+    #endregion
+
+    private function __construct(int $id)
+    {
+        if (!Accounts::getAuthLevel(USER_AUTH_REGISTERED)) throw new AccessDenied;
+        if (!Accounts::getAuthLevel(USER_AUTH_EMPLOYEE) && debug_backtrace()[3]['class'] != "NLC\Base\Sesi") throw new AccessDenied;
+        if (null !== $data = \Database::getRow("app_nlc_questions", "id", $id)) {
+            $this->id = $data['id'];
+            $this->name = $data['name'];
         } else throw new QuestionsNotFound;
     }
 
-    public function getHandle(): string
+    public function __set($name, $value)
     {
-        return $this->handle;
+        switch ($name) {
+            case "name":
+                if (!Accounts::authAccess(USER_AUTH_EMPLOYEE)) throw new AccessDenied;
+                $this->name = $value;
+        }
     }
 
-    public function addQuestion(string $description, array $options, int $answer): bool
+    public function __get($name)
     {
-        $this->question[] = [
-            $description,
-            $options
-        ];
-        $this->answer_key[] = $answer;
-        return $this->commit();
+        switch ($name) {
+            case "id":
+                return $this->id;
+            case "name":
+                return $this->name;
+        }
     }
 
-    public function deleteQuestion(int $id): bool
+    public function addAnswerkey(int $number, int $answer)
     {
-        array_splice($this->question, $id, 1);
-        array_splice($this->answer_key, $id, 1);
-        return $this->commit();
-    }
-
-    public function getQuestionJSON(): string
-    {
-        return json_encode($this->question);
-    }
-
-    /**
-     * 
-     * @param string $answer JSON-formatted
-     * @return float
-     */
-    public function judgeAnswer(string $answer): float
-    {
-        $diff = array_diff_assoc($this->answer_key, json_decode($answer));
-        return (float) 1 - (sizeof($diff) / sizeof($this->answer_key));
-    }
-
-    private function commit(): bool
-    {
-        if (\Database::update(
-            self::TABLE,
-            (new \DatabaseRowInput)
-                ->setField("question_json", json_encode($this->question))
-                ->setField("answer_key_json", json_encode($this->answer_key)),
-            "handle",
-            $this->handle
-        )) return true;
-        else return false;
-    }
-
-    public static function create(string $handle): bool
-    {
-        if (strlen($handle) > 25) throw new InvalidLength;
-        if (\Database::insert(
-            self::TABLE,
+        if (!Accounts::authAccess(USER_AUTH_EMPLOYEE)) throw new AccessDenied;
+        \Database::insert(
+            "app_nlc_questions_answerkey",
             [
-                (new \DatabaseRowInput)
-                    ->setField("handle", $handle)
+                (new DatabaseRowInput)
+                    ->setField("id", $this->id)
+                    ->setField("number", $number)
+                    ->setField("answer", $answer)
             ]
-        )) {
-            return true;
-        } else return false;
+        );
+    }
+
+    public function resetAnswerkey()
+    {
+        if (!Accounts::authAccess(USER_AUTH_EMPLOYEE)) throw new AccessDenied;
+        \Database::delete("app_nlc_questions_answerkey", "id", $this->id);
     }
 }

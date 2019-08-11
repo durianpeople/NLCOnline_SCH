@@ -1,0 +1,28 @@
+Frontend:
+/                                           =>  Login
+
+                                            ##  Admin
+    /admin                                  =>  Dashboard admin
+        /admin/sesi                         =>  List sesi
+            /admin/sesi/{create atau id}    =>  Administrasi sesi (buat baru atau edit)
+                /admin/sesi/judge/{id}      =>  Judge jawaban peserta (lihat nilai)
+        /admin/paket                        =>  List paket soal
+            /admin/paket/{create atau id}   =>  Administrasi paket soal (buat baru atau edit)
+
+                                            ##  Peserta
+    /sesi                                   =>  List sesi
+        /sesi/{id}                          =>  Masuk sesi (jawab soal)
+
+
+Timeline:
+7  -- 25 Agustus   2019: Frontend + Model selesain
+26 -- 31 Agustus   2019: Controller + review frontend + model
+1  -- 10 September 2019: Review + Testing lokal
+7        September 2019: Sewa server sebulan
+11 -- 20 September 2019: Testing di server (spam request sekalian)
+22       September 2019: Warmup
+
+Mulai pengerjaan 7 Agustus 2019. Target selesai paling lambat 25 Agustus 2019. (19 hari).
+
+Total 9 halaman, jadi 1 halaman dan model-model terkait dikerjakan dalam ~2 hari.
+            

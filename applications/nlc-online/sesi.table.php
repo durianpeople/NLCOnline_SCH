@@ -1,10 +1,11 @@
 <?php
 return (new DatabaseTableBuilder)
-    ->addColumn("handle", "VARCHAR(25)")
+    ->addColumn("id", "INT")->setAsPrimaryKey()->auto_increment()
     ->addColumn("name", "VARCHAR(50)")
     ->addColumn("start_time", "INT(11) UNSIGNED")
     ->addColumn("end_time", "INT(11) UNSIGNED")
-    ->addColumn("enabled", "SMALLINT")
-    ->addColumn("questions_handle", "VARCHAR(25)")->allowNull()
+    ->addColumn("enabled", "SMALLINT")->defaultValue(0)
+    ->addColumn("is_public", "SMALLINT")
+    ->addColumn("questions_id", "INT")->allowNull()
 
-    ->createIndex("s_uniq", ["handle"], "UNIQUE");
+    ->createIndex("idx", ["id"], "UNIQUE");
