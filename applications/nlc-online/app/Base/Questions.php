@@ -14,6 +14,7 @@ use NLC\Base\Sesi;
  * Questions class
  * 
  * @property-read int $id
+ * @property-read string $question_pdf_url
  * @property string $name
  */
 class Questions
@@ -44,8 +45,8 @@ class Questions
 
     private function __construct(int $id)
     {
-        if (!Accounts::getAuthLevel(USER_AUTH_REGISTERED)) throw new AccessDenied;
-        if (!Accounts::getAuthLevel(USER_AUTH_EMPLOYEE) && debug_backtrace()[3]['class'] != "NLC\Base\Sesi") throw new AccessDenied;
+        if (!Accounts::authAccess(USER_AUTH_REGISTERED)) throw new AccessDenied;
+        if (!Accounts::authAccess(USER_AUTH_EMPLOYEE) && debug_backtrace()[3]['class'] != Sesi::class) throw new AccessDenied;
         if (null !== $data = \Database::getRow("app_nlc_questions", "id", $id)) {
             $this->id = $data['id'];
             $this->name = $data['name'];
@@ -68,6 +69,20 @@ class Questions
                 return $this->id;
             case "name":
                 return $this->name;
+            case "question_pdf_url":
+                return \UserData::getURL("QUESTION_" . $this->id);
+        }
+    }
+
+    public function uploadQuestionPDF($filename)
+    {
+        if (!Accounts::authAccess(USER_AUTH_EMPLOYEE)) throw new AccessDenied;
+        if (\IO::exists($filename)) {
+            if (!\UserData::move("QUESTION_" . $this->id, \IO::physical_path($filename), true)) {
+                throw new \IOError("Cannot move PDF file");
+            } else {
+                return true;
+            }
         }
     }
 
@@ -84,6 +99,7 @@ class Questions
             ]
         );
     }
+
 
     public function resetAnswerkey()
     {

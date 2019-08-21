@@ -14,10 +14,10 @@ use NLC\Throwable\SesiNotStarted;
  * Sesi class
  * 
  * @property-read int $id
+ * @property-read bool $enabled
  * @property string $name
  * @property int $start_time
  * @property int $end_time
- * @property-read bool $enabled
  * @property Questions $questions
  */
 class Sesi
@@ -61,9 +61,9 @@ class Sesi
 
     private function __construct(int $id)
     {
-        if(!Accounts::getAuthLevel(USER_AUTH_REGISTERED)) throw new AccessDenied;
+        if(!Accounts::authAccess(USER_AUTH_REGISTERED)) throw new AccessDenied;
         if (null !== $data = \Database::getRow("app_nlc_sesi", "id", $id)) {
-            if ((bool) $data['is_public'] == false) throw new AccessDenied;
+            if ((bool) $data['is_public'] == false && !Accounts::authAccess(USER_AUTH_EMPLOYEE)) throw new AccessDenied;
             $this->id = (string) $data['id'];
             $this->name = $data['name'];
             $this->start_time = (int) $data['start_time'];
@@ -75,22 +75,18 @@ class Sesi
 
     public function __set($name, $value)
     {
+        if (!Accounts::authAccess(USER_AUTH_EMPLOYEE)) throw new AccessDenied;
+        if ($this->enabled == true) throw new SesiNotDisabled;
         switch ($name) {
             case "start_time":
-                if (!Accounts::authAccess(USER_AUTH_EMPLOYEE)) throw new AccessDenied;
-                if ($this->enabled == true) throw new SesiNotDisabled;
                 $this->start_time = (int) $value;
                 $this->commit();
                 break;
             case "end_time":
-                if (!Accounts::authAccess(USER_AUTH_EMPLOYEE)) throw new AccessDenied;
-                if ($this->enabled == true) throw new SesiNotDisabled;
                 $this->end_time = (int) $value;
                 $this->commit();
                 break;
             case "questions":
-                if (!Accounts::authAccess(USER_AUTH_EMPLOYEE)) throw new AccessDenied;
-                if ($this->enabled == true) throw new SesiNotDisabled;
                 if (!($value instanceof Questions) && $value != null) throw new InvalidAction("Value is not of type Questions");
                 $this->questions = $value;
                 $this->commit();
@@ -112,7 +108,7 @@ class Sesi
             case "enabled":
                 return $this->enabled;
             case "questions":
-                if (!Accounts::getAuthLevel(USER_AUTH_EMPLOYEE) && !$this->enrollCheck()) throw new AccessDenied;
+                if (!Accounts::authAccess(USER_AUTH_EMPLOYEE) && !$this->enrollCheck()) throw new AccessDenied;
                 return $this->questions;
         }
     }
@@ -177,7 +173,10 @@ class Sesi
             "app_nlc_sesi",
             (new \DatabaseRowInput)
                 ->setField("questions_id", $q_fill)
-                ->setField("enabled", (int) $this->enabled),
+                ->setField("enabled", (int) $this->enabled)
+                ->setField("start_time", (int) $this->start_time)
+                ->setField("end_time", (int) $this->end_time)
+                ,
             "id",
             $this->id
         )) return true;
