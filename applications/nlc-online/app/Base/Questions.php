@@ -9,6 +9,7 @@ use PuzzleError;
 use NLC\Throwable\AccessDenied;
 use DatabaseRowInput;
 use NLC\Base\Sesi;
+use NLC\Throwable\QuestionsIsPermanent;
 
 /**
  * Questions class
@@ -76,6 +77,7 @@ class Questions
 
     public function uploadQuestionPDF($filename)
     {
+        if(\UserData::exists("QUESTION_" . $this->id, \IO::physical_path($filename))) throw new QuestionsIsPermanent;
         if (!Accounts::authAccess(USER_AUTH_EMPLOYEE)) throw new AccessDenied;
         if (\IO::exists($filename)) {
             if (!\UserData::move("QUESTION_" . $this->id, \IO::physical_path($filename), true)) {
@@ -88,6 +90,8 @@ class Questions
 
     public function addAnswerkey(int $number, int $answer)
     {
+        $db = \Database::execute("SELECT 1 FROM app_nlc_questions_answerkey WHERE id = '?'", $this->id);
+        if (mysqli_num_rows($db) > 0) throw new QuestionsIsPermanent;
         if (!Accounts::authAccess(USER_AUTH_EMPLOYEE)) throw new AccessDenied;
         \Database::insert(
             "app_nlc_questions_answerkey",
