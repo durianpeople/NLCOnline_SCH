@@ -9,6 +9,7 @@ use NLC\Throwable\SesiNotDisabled;
 use NLC\Throwable\AccessDenied;
 use NLC\Throwable\InvalidAction;
 use NLC\Throwable\SesiNotStarted;
+use PuzzleUser;
 
 /**
  * Sesi class
@@ -37,7 +38,7 @@ class Sesi
     #region Static
     public static function create(string $name, int $start_time, int $end_time, bool $is_public)
     {
-        if (!Accounts::authAccess(USER_AUTH_EMPLOYEE)) throw new AccessDenied;
+        if (!PuzzleUser::isAccess(USER_AUTH_EMPLOYEE)) throw new AccessDenied;
         if ($start_time > $end_time) throw new InvalidTimeInterval;
         if (\Database::insert(
             "app_nlc_sesi",
@@ -61,9 +62,9 @@ class Sesi
 
     private function __construct(int $id)
     {
-        if(!Accounts::authAccess(USER_AUTH_REGISTERED)) throw new AccessDenied;
+        if(!PuzzleUser::isAccess(USER_AUTH_REGISTERED)) throw new AccessDenied;
         if (null !== $data = \Database::getRow("app_nlc_sesi", "id", $id)) {
-            if ((bool) $data['is_public'] == false && !Accounts::authAccess(USER_AUTH_EMPLOYEE)) throw new AccessDenied;
+            if ((bool) $data['is_public'] == false && !PuzzleUser::isAccess(USER_AUTH_EMPLOYEE)) throw new AccessDenied;
             $this->id = (string) $data['id'];
             $this->name = $data['name'];
             $this->start_time = (int) $data['start_time'];
@@ -75,7 +76,7 @@ class Sesi
 
     public function __set($name, $value)
     {
-        if (!Accounts::authAccess(USER_AUTH_EMPLOYEE)) throw new AccessDenied;
+        if (!PuzzleUser::isAccess(USER_AUTH_EMPLOYEE)) throw new AccessDenied;
         if ($this->enabled == true) throw new SesiNotDisabled;
         switch ($name) {
             case "start_time":
@@ -108,14 +109,14 @@ class Sesi
             case "enabled":
                 return $this->enabled;
             case "questions":
-                if (!Accounts::authAccess(USER_AUTH_EMPLOYEE) && !$this->enrollCheck()) throw new AccessDenied;
+                if (!PuzzleUser::isAccess(USER_AUTH_EMPLOYEE) && !$this->enrollCheck()) throw new AccessDenied;
                 return $this->questions;
         }
     }
 
     public function removeQuestions()
     {
-        if (!Accounts::authAccess(USER_AUTH_EMPLOYEE)) throw new AccessDenied;
+        if (!PuzzleUser::isAccess(USER_AUTH_EMPLOYEE)) throw new AccessDenied;
         if ($this->enabled == true) throw new SesiNotDisabled;
         $this->questions = null;
         $this->commit();
@@ -123,14 +124,14 @@ class Sesi
 
     public function enable(): bool
     {
-        if (!Accounts::authAccess(USER_AUTH_EMPLOYEE)) throw new AccessDenied;
+        if (!PuzzleUser::isAccess(USER_AUTH_EMPLOYEE)) throw new AccessDenied;
         $this->enabled = true;
         return $this->commit();
     }
 
     public function disable(): bool
     {
-        if (!Accounts::authAccess(USER_AUTH_EMPLOYEE)) throw new AccessDenied;
+        if (!PuzzleUser::isAccess(USER_AUTH_EMPLOYEE)) throw new AccessDenied;
         \Database::execute(
             "DELETE FROM `app_nlc_sesi_user_log` 
             WHERE sesi_id = '?'",
@@ -154,15 +155,28 @@ class Sesi
         if ($this->enrollCheck()) {
             \Database::execute(
                 "INSERT INTO `app_nlc_sesi_user_log` (`sesi_id`, `user_id`, `number`, `answer`) 
-                VALUES ('?', '?', '?', '?') 
-                ON DUPLICATE KEY 
-                UPDATE answer = '?'",
+                VALUES ('?', '?', '?', '?')",
                 $this->id,
-                Accounts::getUserId(),
+                PuzzleUser::active()->id,
                 $number,
-                $answer,
                 $answer
             );
+        }
+    }
+
+    public function retrieveAnswer()
+    {
+        if ($this->enrollCheck()) {
+            $db = \Database::execute("SELECT x.sesi_id, x.user_id, x.`number`, x.answer, x.id from app_nlc_sesi_user_log x inner join (
+                select sesi_id, user_id, `number`, max(id) max_id from app_nlc_sesi_user_log where sesi_id = '?' and user_id = '?' group by `number`
+            ) y
+            on x.sesi_id = y.sesi_id and x.user_id = y.user_id and x.`number` = y.`number` and x.`id` = y.max_id where x.sesi_id = '?' and x.user_id = '?';",
+            $this->id, PuzzleUser::active()->id, $this->id, PuzzleUser::active()->id);
+            $obj = [];
+            while ($row = $db->fetch_assoc()) {
+                $obj[$row['number']] = $row['answer'];
+            }
+            json_out($obj);
         }
     }
 

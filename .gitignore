@@ -15,9 +15,7 @@ bootstrap/*
 configs/*
 public/*
 storage/*
-templates/blank
-templates/niceadmin
-templates/system
+templates/*
 *.log
 puzzleos
 puzzleworker

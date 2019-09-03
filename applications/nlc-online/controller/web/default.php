@@ -3,9 +3,9 @@
 use NLC\Base\Sesi;
 use NLC\Base\Questions;
 
-$q = Questions::load(2);
+$s = Sesi::load(1);
 
-var_dump($q);
+var_dump($s->retrieveAnswer());
 
 exit;
 return "default";

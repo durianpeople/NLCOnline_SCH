@@ -10,6 +10,7 @@ use NLC\Throwable\AccessDenied;
 use DatabaseRowInput;
 use NLC\Base\Sesi;
 use NLC\Throwable\QuestionsIsPermanent;
+use PuzzleUser;
 
 /**
  * Questions class
@@ -26,7 +27,7 @@ class Questions
     #region Static
     public static function create(string $name)
     {
-        if (!Accounts::authAccess(USER_AUTH_EMPLOYEE)) throw new AccessDenied;
+        if (!PuzzleUser::isAccess(USER_AUTH_EMPLOYEE)) throw new AccessDenied;
         if (\Database::insert(
             "app_nlc_questions",
             [
@@ -46,8 +47,8 @@ class Questions
 
     private function __construct(int $id)
     {
-        if (!Accounts::authAccess(USER_AUTH_REGISTERED)) throw new AccessDenied;
-        if (!Accounts::authAccess(USER_AUTH_EMPLOYEE) && debug_backtrace()[3]['class'] != Sesi::class) throw new AccessDenied;
+        if (!PuzzleUser::isAccess(USER_AUTH_REGISTERED)) throw new AccessDenied;
+        if (!PuzzleUser::isAccess(USER_AUTH_EMPLOYEE) && debug_backtrace()[3]['class'] != Sesi::class) throw new AccessDenied;
         if (null !== $data = \Database::getRow("app_nlc_questions", "id", $id)) {
             $this->id = $data['id'];
             $this->name = $data['name'];
@@ -58,7 +59,7 @@ class Questions
     {
         switch ($name) {
             case "name":
-                if (!Accounts::authAccess(USER_AUTH_EMPLOYEE)) throw new AccessDenied;
+                if (!PuzzleUser::isAccess(USER_AUTH_EMPLOYEE)) throw new AccessDenied;
                 $this->name = $value;
         }
     }
@@ -78,7 +79,7 @@ class Questions
     public function uploadQuestionPDF($filename)
     {
         if(\UserData::exists("QUESTION_" . $this->id, \IO::physical_path($filename))) throw new QuestionsIsPermanent;
-        if (!Accounts::authAccess(USER_AUTH_EMPLOYEE)) throw new AccessDenied;
+        if (!PuzzleUser::isAccess(USER_AUTH_EMPLOYEE)) throw new AccessDenied;
         if (\IO::exists($filename)) {
             if (!\UserData::move("QUESTION_" . $this->id, \IO::physical_path($filename), true)) {
                 throw new \IOError("Cannot move PDF file");
@@ -92,7 +93,7 @@ class Questions
     {
         $db = \Database::execute("SELECT 1 FROM app_nlc_questions_answerkey WHERE id = '?'", $this->id);
         if (mysqli_num_rows($db) > 0) throw new QuestionsIsPermanent;
-        if (!Accounts::authAccess(USER_AUTH_EMPLOYEE)) throw new AccessDenied;
+        if (!PuzzleUser::isAccess(USER_AUTH_EMPLOYEE)) throw new AccessDenied;
         \Database::insert(
             "app_nlc_questions_answerkey",
             [
@@ -107,7 +108,7 @@ class Questions
 
     public function resetAnswerkey()
     {
-        if (!Accounts::authAccess(USER_AUTH_EMPLOYEE)) throw new AccessDenied;
+        if (!PuzzleUser::isAccess(USER_AUTH_EMPLOYEE)) throw new AccessDenied;
         \Database::delete("app_nlc_questions_answerkey", "id", $this->id);
     }
 }
