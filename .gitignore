@@ -16,6 +16,7 @@ configs/*
 public/*
 storage/*
 templates/*
+!templates/nlc
 *.log
 puzzleos
 puzzleworker
@@ -23,6 +24,7 @@ puzzleworker
 *.md
 !README.md
 LICENSE/*
+includes/*
 
 #Ignoring editor stuff
 .codelite

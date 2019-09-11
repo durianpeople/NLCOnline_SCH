@@ -19,15 +19,17 @@ use PuzzleUser;
  * @property string $name
  * @property int $start_time
  * @property int $end_time
+ * @property-read bool $is_public
  * @property Questions $questions
  */
-class Sesi
+class Sesi implements \JsonSerializable
 {
     private $id;
     private $name;
     private $start_time;
     private $end_time;
     private $enabled;
+    private $is_public;
     /**
      * Questions assigned to this class
      *
@@ -58,6 +60,21 @@ class Sesi
     {
         return new self($id);
     }
+
+    /**
+     * 
+     *
+     * @return Sesi[]
+     */
+    public static function list(): array
+    {
+        $ss = [];
+        $db = \Database::execute("SELECT id FROM app_nlc_sesi");
+        while ($row = $db->fetch_assoc()) {
+            $ss[] = new self($row['id']);
+        }
+        return $ss;
+    }
     #endregion
 
     private function __construct(int $id)
@@ -70,6 +87,7 @@ class Sesi
             $this->start_time = (int) $data['start_time'];
             $this->end_time = (int) $data['end_time'];
             $this->enabled = (bool) $data['enabled'];
+            $this->is_public = (bool) $data['is_public'];
             if ($data['questions_id'] != null) $this->questions = Questions::load($data['questions_id']);
         } else throw new SesiNotFound;
     }
@@ -79,6 +97,10 @@ class Sesi
         if (!PuzzleUser::isAccess(USER_AUTH_EMPLOYEE)) throw new AccessDenied;
         if ($this->enabled == true) throw new SesiNotDisabled;
         switch ($name) {
+            case "name":
+                $this->name = $value;
+                $this->commit();
+                break;
             case "start_time":
                 $this->start_time = (int) $value;
                 $this->commit();
@@ -88,7 +110,7 @@ class Sesi
                 $this->commit();
                 break;
             case "questions":
-                if (!($value instanceof Questions) && $value != null) throw new InvalidAction("Value is not of type Questions");
+                if (!($value instanceof Questions) && $value !== null) throw new InvalidAction("Value is not of type Questions");
                 $this->questions = $value;
                 $this->commit();
                 break;
@@ -180,12 +202,25 @@ class Sesi
         }
     }
 
+    public function jsonSerialize()
+    {
+        return [
+            "id" => (int)$this->id,
+            "name" => $this->name,
+            "start_time" => $this->start_time,
+            "end_time" => $this->end_time,
+            "enabled" => $this->enabled,
+            "is_public" => $this->is_public,
+        ];
+    }
+
     private function commit(): bool
     {
         $q_fill = ($this->questions === null) ? null : $this->questions->id;
         if (\Database::update(
             "app_nlc_sesi",
             (new \DatabaseRowInput)
+                ->setField("name", $this->name)
                 ->setField("questions_id", $q_fill)
                 ->setField("enabled", (int) $this->enabled)
                 ->setField("start_time", (int) $this->start_time)
@@ -196,4 +231,6 @@ class Sesi
         )) return true;
         else return false;
     }
+
+
 }
