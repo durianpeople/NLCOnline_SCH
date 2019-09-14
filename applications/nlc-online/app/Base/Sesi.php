@@ -211,6 +211,7 @@ class Sesi implements \JsonSerializable
             "end_time" => $this->end_time,
             "enabled" => $this->enabled,
             "is_public" => $this->is_public,
+            "questions" => $this->questions ?? null,
         ];
     }
 

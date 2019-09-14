@@ -19,7 +19,7 @@ use PuzzleUser;
  * @property-read string $question_pdf_url
  * @property string $name
  */
-class Questions
+class Questions implements \JsonSerializable
 {
     private $id;
     private $name;
@@ -43,6 +43,20 @@ class Questions
     {
         return new self($id);
     }
+
+    /**
+     * Get list of all questions
+     * @return Questions[]
+     */
+    public static function list(): array
+    {
+        $ss = [];
+        $db = \Database::execute("SELECT id FROM app_nlc_questions");
+        while ($row = $db->fetch_assoc()) {
+            $ss[] = new self($row['id']);
+        }
+        return $ss;
+    }
     #endregion
 
     private function __construct(int $id)
@@ -50,7 +64,7 @@ class Questions
         if (!PuzzleUser::isAccess(USER_AUTH_REGISTERED)) throw new AccessDenied;
         if (!PuzzleUser::isAccess(USER_AUTH_EMPLOYEE) && debug_backtrace()[3]['class'] != Sesi::class) throw new AccessDenied;
         if (null !== $data = \Database::getRow("app_nlc_questions", "id", $id)) {
-            $this->id = $data['id'];
+            $this->id = (int) $data['id'];
             $this->name = $data['name'];
         } else throw new QuestionsNotFound;
     }
@@ -110,5 +124,13 @@ class Questions
     {
         if (!PuzzleUser::isAccess(USER_AUTH_EMPLOYEE)) throw new AccessDenied;
         \Database::delete("app_nlc_questions_answerkey", "id", $this->id);
+    }
+
+    public function jsonSerialize()
+    {
+        return [
+            "id" => $this->id,
+            "name" => $this->name,
+        ];
     }
 }
