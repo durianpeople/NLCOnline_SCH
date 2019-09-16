@@ -1,4 +1,5 @@
 <?php
+
 if ($appProp->isMainApp) {
     if (PuzzleUser::isAccess(USER_AUTH_EMPLOYEE)) {
         $a = "admin";
@@ -19,7 +20,7 @@ if ($appProp->isMainApp) {
         $request = request(1);
         $controller_path = my_dir("controller/$a/$request.php");
         if (file_exists($controller_path) && is_file($controller_path)) {
-            $appProp->bundle["view"] = "$a/$d/" . require $controller_path;
+            $appProp->bundle["view"] = "$a/$request/" . require $controller_path;
         } else {
             $appProp->bundle["view"] = "$a/$d/" . require "controller/$a/$d.php";
         }

@@ -75,6 +75,8 @@ class Questions implements \JsonSerializable
             case "name":
                 if (!PuzzleUser::isAccess(USER_AUTH_EMPLOYEE)) throw new AccessDenied;
                 $this->name = $value;
+                \Database::update("app_nlc_questions", (new \DatabaseRowInput)->setField("name", $value), "id", $this->id);
+                break;
         }
     }
 
@@ -86,51 +88,66 @@ class Questions implements \JsonSerializable
             case "name":
                 return $this->name;
             case "question_pdf_url":
-                return \UserData::getURL("QUESTION_" . $this->id);
+                return \UserData::getURL("QUESTION_" . $this->id) ?? null;
         }
     }
 
-    public function uploadQuestionPDF($filename)
+    public function uploadQuestionPDF($input_name)
     {
-        if(\UserData::exists("QUESTION_" . $this->id, \IO::physical_path($filename))) throw new QuestionsIsPermanent;
+        if (\UserData::exists("QUESTION_" . $this->id)) throw new QuestionsIsPermanent;
         if (!PuzzleUser::isAccess(USER_AUTH_EMPLOYEE)) throw new AccessDenied;
-        if (\IO::exists($filename)) {
-            if (!\UserData::move("QUESTION_" . $this->id, \IO::physical_path($filename), true)) {
-                throw new \IOError("Cannot move PDF file");
-            } else {
-                return true;
-            }
+        if (!\UserData::move_uploaded("QUESTION_" . $this->id, $input_name, true)) throw new \IOError("Cannot move PDF file");
+        return true;
+    }
+
+    public function uploadAnswerKey($csv_file)
+    {
+        if (!PuzzleUser::isAccess(USER_AUTH_EMPLOYEE)) throw new AccessDenied;
+        $this->resetAnswerkey();
+        $csvFile = file($csv_file);
+        $payload = [];
+        foreach ($csvFile as $line) {
+            $data = str_getcsv($line);
+            $payload[] = (new DatabaseRowInput)
+                ->setField("question_id", $this->id)
+                ->setField("number", $data[0])
+                ->setField("answer", array_search($data[1], [0 => "A", 1 => "B", 2 => "C", 3 => "D", 4 => "E"]));
         }
+        \Database::insert("app_nlc_questions_answerkey", $payload);
     }
 
-    public function addAnswerkey(int $number, int $answer)
+    private function resetAnswerkey()
     {
-        $db = \Database::execute("SELECT 1 FROM app_nlc_questions_answerkey WHERE id = '?'", $this->id);
-        if (mysqli_num_rows($db) > 0) throw new QuestionsIsPermanent;
         if (!PuzzleUser::isAccess(USER_AUTH_EMPLOYEE)) throw new AccessDenied;
-        \Database::insert(
-            "app_nlc_questions_answerkey",
-            [
-                (new DatabaseRowInput)
-                    ->setField("id", $this->id)
-                    ->setField("number", $number)
-                    ->setField("answer", $answer)
-            ]
-        );
+        \Database::delete("app_nlc_questions_answerkey", "question_id", $this->id);
     }
 
-
-    public function resetAnswerkey()
+    public function getAnswerKey()
     {
         if (!PuzzleUser::isAccess(USER_AUTH_EMPLOYEE)) throw new AccessDenied;
-        \Database::delete("app_nlc_questions_answerkey", "id", $this->id);
+        $db = \Database::execute("SELECT `number`, `answer` FROM app_nlc_questions_answerkey WHERE question_id = '?'", $this->id);
+        $ak = [];
+        while ($row = $db->fetch_assoc()) {
+            $ak[$row["number"]] = $row['answer'];
+        }
+        return $ak;
     }
 
     public function jsonSerialize()
     {
-        return [
-            "id" => $this->id,
-            "name" => $this->name,
-        ];
+        if (PuzzleUser::isAccess(USER_AUTH_EMPLOYEE)) {
+            return [
+                "id" => $this->id,
+                "name" => $this->name,
+                "question_pdf_url" => $this->__get("question_pdf_url"),
+                "answer_key" => $this->getAnswerKey(),
+            ];
+        } else {
+            return [
+                "id" => $this->id,
+                "name" => $this->name,
+                "question_pdf_url" => $this->__get("question_pdf_url"),
+            ];
+        }
     }
 }

@@ -11,10 +11,85 @@ use NLC\Base\Questions;
 <div>
     <div id="data"></div>
 </div>
+<br>
+<div>
+    <button class="btn btn-primary" data-toggle="modal" data-target="#new-sesi">Tambah Sesi</button>
+</div>
+
+<div class="modal" id="new-sesi">
+    <div class="modal-dialog" role="document">
+        <form method="POST" id="new-sesi-frm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Tambah Sesi</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group row">
+                        <label for="name" class="col-sm-2 col-form-label">Nama Sesi</label>
+                        <div class="col-sm-10">
+                            <input type="text" class="form-control" name="name" placeholder="Nama Sesi">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="name" class="col-sm-2 col-form-label">Waktu Mulai</label>
+                        <div class="col-sm-10">
+                            <input type="datetime-local" class="form-control" name="start_time">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="name" class="col-sm-2 col-form-label">Waktu Selesai</label>
+                        <div class="col-sm-10">
+                            <input type="datetime-local" class="form-control" name="end_time">
+                        </div>
+                    </div>
+                    <fieldset class="form-group">
+                        <div class="row">
+                            <legend class="col-form-label col-sm-2 pt-0">Sesi Publik</legend>
+                            <div class="col-sm-10">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="is-public" id="gridRadios1" value="1" checked>
+                                    <label class="form-check-label" for="gridRadios1">
+                                        Ya
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="is-public" id="gridRadios2" value="0">
+                                    <label class="form-check-label" for="gridRadios2">
+                                        Tidak
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </fieldset>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Buat</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
 
 <?php ob_start() ?>
 <script>
     (function() {
+        $("#new-sesi-frm").submit(e=>{
+            e.preventDefault();
+            let f = $(e.target).serialize();
+            f += `&act=new_modal&_token=<?php echo (session_id()) ?>`;
+            console.log(f);
+            $.post("/nlc/sesi",f,d=>{
+                showMessage("Sesi terimpan" , "success");
+                location.reload();
+            }).fail(e=>{
+                console.log(e);
+                showMessage("Gagal Membuat" , "danger");
+            })
+        });
         let Slist = <?php j(Questions::list()) ?>;
         var dateEditor = function(cell, onRendered, success, cancel, editorParams) {
             //cell - the cell component for the editable cell
@@ -67,6 +142,7 @@ use NLC\Base\Questions;
                     title: "Nama",
                     field: "name",
                     sorter: "string",
+                    headerFilter: "input",
                     editor: "input",
                     mutator: (value, data, type, params, cell) => {
                         if (type == "edit") {
