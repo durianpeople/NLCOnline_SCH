@@ -28,6 +28,15 @@ switch ($_POST["act"]) {
     case "set_end_time":
         $s = Sesi::load($_POST["id"]);
         json_out($s->end_time = (int) $_POST['end_time']);
+    case "new_modal":
+        $st = new DateTime($_POST['start_time'], new \DateTimeZone("Asia/Jakarta"));
+        $et = new DateTime($_POST['end_time'], new \DateTimeZone("Asia/Jakarta"));
+        json_out($s = Sesi::create(
+            $_POST['name'],
+            $st->setTime($st->format("H"), $st->format("i"))->getTimestamp(),
+            $et->setTime($et->format("H"), $et->format("i"))->getTimestamp(),
+            (bool) $_POST['is-public']
+        ));
 }
 
 switch (request(2)) {

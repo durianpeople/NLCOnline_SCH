@@ -5,6 +5,9 @@ Frontend:
     /admin                                  =>  Dashboard admin
         /admin/sesi                         =>  List sesi
             /admin/sesi/{create atau id}    =>  Administrasi sesi (buat baru atau edit)
+
+        ## TAMBAHAN FITUR: SESI WHITELIST ##
+
                 /admin/sesi/judge/{id}      =>  Judge jawaban peserta (lihat nilai)
         /admin/paket                        =>  List paket soal
             /admin/paket/{create atau id}   =>  Administrasi paket soal (buat baru atau edit)

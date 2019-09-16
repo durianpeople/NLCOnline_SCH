@@ -49,7 +49,7 @@ class Sesi implements \JsonSerializable
                     ->setField("name", $name)
                     ->setField("start_time", $start_time)
                     ->setField("end_time", $end_time)
-                    ->setField("is_public", $is_public)
+                    ->setField("is_public", (int) $is_public)
             ]
         )) {
             return self::load(\Database::lastId());
@@ -71,7 +71,9 @@ class Sesi implements \JsonSerializable
         $ss = [];
         $db = \Database::execute("SELECT id FROM app_nlc_sesi");
         while ($row = $db->fetch_assoc()) {
-            $ss[] = new self($row['id']);
+            try {
+                $ss[] = new self($row['id']);
+            } catch (\Exception $e) { }
         }
         return $ss;
     }
@@ -79,7 +81,7 @@ class Sesi implements \JsonSerializable
 
     private function __construct(int $id)
     {
-        if(!PuzzleUser::isAccess(USER_AUTH_REGISTERED)) throw new AccessDenied;
+        if (!PuzzleUser::isAccess(USER_AUTH_REGISTERED)) throw new AccessDenied;
         if (null !== $data = \Database::getRow("app_nlc_sesi", "id", $id)) {
             if ((bool) $data['is_public'] == false && !PuzzleUser::isAccess(USER_AUTH_EMPLOYEE)) throw new AccessDenied;
             $this->id = (string) $data['id'];
@@ -189,11 +191,16 @@ class Sesi implements \JsonSerializable
     public function retrieveAnswer()
     {
         if ($this->enrollCheck()) {
-            $db = \Database::execute("SELECT x.sesi_id, x.user_id, x.`number`, x.answer, x.id from app_nlc_sesi_user_log x inner join (
+            $db = \Database::execute(
+                "SELECT x.sesi_id, x.user_id, x.`number`, x.answer, x.id from app_nlc_sesi_user_log x inner join (
                 select sesi_id, user_id, `number`, max(id) max_id from app_nlc_sesi_user_log where sesi_id = '?' and user_id = '?' group by `number`
             ) y
             on x.sesi_id = y.sesi_id and x.user_id = y.user_id and x.`number` = y.`number` and x.`id` = y.max_id where x.sesi_id = '?' and x.user_id = '?';",
-            $this->id, PuzzleUser::active()->id, $this->id, PuzzleUser::active()->id);
+                $this->id,
+                PuzzleUser::active()->id,
+                $this->id,
+                PuzzleUser::active()->id
+            );
             $obj = [];
             while ($row = $db->fetch_assoc()) {
                 $obj[$row['number']] = $row['answer'];
@@ -205,7 +212,7 @@ class Sesi implements \JsonSerializable
     public function jsonSerialize()
     {
         return [
-            "id" => (int)$this->id,
+            "id" => (int) $this->id,
             "name" => $this->name,
             "start_time" => $this->start_time,
             "end_time" => $this->end_time,
@@ -225,13 +232,10 @@ class Sesi implements \JsonSerializable
                 ->setField("questions_id", $q_fill)
                 ->setField("enabled", (int) $this->enabled)
                 ->setField("start_time", (int) $this->start_time)
-                ->setField("end_time", (int) $this->end_time)
-                ,
+                ->setField("end_time", (int) $this->end_time),
             "id",
             $this->id
         )) return true;
         else return false;
     }
-
-
 }
