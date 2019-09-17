@@ -11,6 +11,7 @@ use NLC\Throwable\InvalidAction;
 use NLC\Throwable\SesiNotStarted;
 use PuzzleUser;
 use NLC\Base\NLCUser;
+use NLC\Enum\SesiType;
 
 /**
  * Sesi class
@@ -20,17 +21,21 @@ use NLC\Base\NLCUser;
  * @property string $name
  * @property int $start_time
  * @property int $end_time
- * @property-read bool $is_public
+ * @property-read int $type
+ * @property-read int $quota
  * @property Questions $questions
  */
 class Sesi implements \JsonSerializable
 {
+    private static $singleton = [];
+
     private $id;
     private $name;
     private $start_time;
     private $end_time;
     private $enabled;
-    private $is_public;
+    private $type;
+    private $quota;
     /**
      * Questions assigned to this class
      *
@@ -39,10 +44,12 @@ class Sesi implements \JsonSerializable
     private $questions = null;
 
     #region Static
-    public static function create(string $name, int $start_time, int $end_time, bool $is_public)
+    public static function create(string $name, int $start_time, int $end_time, SesiType $type, int $quota = 0)
     {
         if (!PuzzleUser::isAccess(USER_AUTH_EMPLOYEE)) throw new AccessDenied;
         if ($start_time > $end_time) throw new InvalidTimeInterval;
+        if ($type == SesiType::SELFJOIN && $quota == 0) throw new InvalidAction("Self join require quota");
+        if ($type != SesiType::SELFJOIN) $quota = 0;
         if (\Database::insert(
             "app_nlc_sesi",
             [
@@ -50,7 +57,8 @@ class Sesi implements \JsonSerializable
                     ->setField("name", $name)
                     ->setField("start_time", $start_time)
                     ->setField("end_time", $end_time)
-                    ->setField("is_public", (int) $is_public)
+                    ->setField("type", (int) $type)
+                    ->setField("quota", (int) $quota)
             ]
         )) {
             return self::load(\Database::lastId());
@@ -84,16 +92,18 @@ class Sesi implements \JsonSerializable
     {
         if (!PuzzleUser::isAccess(USER_AUTH_REGISTERED)) throw new AccessDenied;
         if (null !== $data = \Database::getRow("app_nlc_sesi", "id", $id)) {
-            if ((bool) $data['is_public'] == false && !PuzzleUser::isAccess(USER_AUTH_EMPLOYEE)) {
-                $db = \Database::execute("SELECT 1 FROM app_nlc_sesi_whitelist WHERE sesi_id = '?' AND `user_id` = '?'", $id, PuzzleUser::active()->id);
-                if (mysqli_num_rows($db) == 0) throw new AccessDenied;
+            if ((int) $data['type'] != SesiType::OPEN && !PuzzleUser::isAccess(USER_AUTH_EMPLOYEE)) {
+                if((int) $data['type'] == SesiType::WHITELIST) {
+                    $db = \Database::execute("SELECT 1 FROM app_nlc_sesi_whitelist WHERE sesi_id = '?' AND `user_id` = '?'", $id, PuzzleUser::active()->id);
+                    if (mysqli_num_rows($db) == 0) throw new AccessDenied;
+                }
             }
             $this->id = (string) $data['id'];
             $this->name = $data['name'];
             $this->start_time = (int) $data['start_time'];
             $this->end_time = (int) $data['end_time'];
             $this->enabled = (bool) $data['enabled'];
-            $this->is_public = (bool) $data['is_public'];
+            $this->type = (int) $data['type']; 
             if ($data['questions_id'] != null) $this->questions = Questions::load($data['questions_id']);
         } else throw new SesiNotFound;
     }
@@ -204,9 +214,9 @@ class Sesi implements \JsonSerializable
     public function enrollCheck(): bool
     {
         $crt = time();
-        if ($crt < $this->start_time) return false;
-        if ($crt > $this->end_time) return false;
-        if ($this->enabled == false) return false;
+        if ($crt < $this->start_time ||
+            $crt > $this->end_time ||
+            $this->enabled == false) return false;
         return true;
     }
 
@@ -254,7 +264,8 @@ class Sesi implements \JsonSerializable
                 "start_time" => $this->start_time,
                 "end_time" => $this->end_time,
                 "enabled" => $this->enabled,
-                "is_public" => $this->is_public,
+                "type" => $this->type,
+                "quota" => $this->quota,
                 "questions" => $this->questions ?? null,
                 "whitelisted" => $this->getWhitelist(),
             ];
