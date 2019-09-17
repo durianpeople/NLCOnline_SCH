@@ -2,6 +2,10 @@
 
 use NLC\Base\Questions;
 use NLC\Base\NLCUser;
+use NLC\Sesi\SesiPrivate;
+use NLC\Sesi\SesiSelfJoin;
+use NLC\Sesi\SesiTerbuka;
+
 ?>
 
 <link href="https://unpkg.com/tabulator-tables@4.3.0/dist/css/semantic-ui/tabulator_semantic-ui.min.css" rel="stylesheet">
@@ -48,18 +52,24 @@ use NLC\Base\NLCUser;
                     </div>
                     <fieldset class="form-group">
                         <div class="row">
-                            <legend class="col-form-label col-sm-2 pt-0">Sesi Publik</legend>
+                            <legend class="col-form-label col-sm-2 pt-0">Tipe Sesi</legend>
                             <div class="col-sm-10">
                                 <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="is-public" id="gridRadios1" value="1" checked>
+                                    <input class="form-check-input" type="radio" name="type" id="gridRadios1" value="public" checked>
                                     <label class="form-check-label" for="gridRadios1">
-                                        Ya
+                                        Publik
                                     </label>
                                 </div>
                                 <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="is-public" id="gridRadios2" value="0">
+                                    <input class="form-check-input" type="radio" name="type" id="gridRadios2" value="private">
                                     <label class="form-check-label" for="gridRadios2">
-                                        Tidak
+                                        Whitelist
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="type" id="gridRadios3" value="selfjoin">
+                                    <label class="form-check-label" for="gridRadios3">
+                                        Publik dengan Kuota
                                     </label>
                                 </div>
                             </div>
@@ -103,7 +113,6 @@ use NLC\Base\NLCUser;
             e.preventDefault();
             let f = $(e.target).serialize();
             f += `&act=new_modal&_token=<?php echo (session_id()) ?>`;
-            console.log(f);
             $.post("/nlc/sesi", f, d => {
                 showMessage("Sesi terimpan", "success");
                 location.reload();
@@ -111,7 +120,7 @@ use NLC\Base\NLCUser;
                 showMessage("Gagal Membuat", "danger");
             })
         });
-        let ulist = <?php j(NLCUser::getList())?>;
+        let ulist = <?php j(NLCUser::getList()) ?>;
         let Slist = <?php j(Questions::list()) ?>;
         var dateEditor = function(cell, onRendered, success, cancel, editorParams) {
             //cell - the cell component for the editable cell
@@ -151,30 +160,29 @@ use NLC\Base\NLCUser;
             return editor;
         };
         console.log(ulist);
-        var user_table = new Tabulator(document.getElementById("white-list-tab"),{
-            selectable:true,
-            selectableRollingSelection:true,
-            selectablePersistence:true,
+        var user_table = new Tabulator(document.getElementById("white-list-tab"), {
+            selectable: true,
+            selectableRollingSelection: true,
+            selectablePersistence: true,
             layoutColumnsOnNewData: true,
             paginationSize: 20,
             pagination: "local",
             resizableRows: false,
             resizableColumns: false,
-            columns:[
-                {
-                    title:"ID NLC",
-                    field:"nlc_id",
-                    headerFilter:"input"
+            columns: [{
+                    title: "ID NLC",
+                    field: "nlc_id",
+                    headerFilter: "input"
                 },
                 {
-                    title:"Email",
-                    field:"email",
-                    headerFilter:"input"
+                    title: "Email",
+                    field: "email",
+                    headerFilter: "input"
                 },
                 {
-                    title:"Nama Tim",
-                    field:"fullname",
-                    headerFilter:"input"
+                    title: "Nama Tim",
+                    field: "fullname",
+                    headerFilter: "input"
                 }
             ]
         });
@@ -215,6 +223,11 @@ use NLC\Base\NLCUser;
                             return value;
                     },
                     mutatorParams: null
+                },
+                {
+                    title: "Tipe",
+                    headerFilter: "input",
+                    field: "type"
                 },
                 {
                     title: "Paket Soal",
@@ -340,63 +353,99 @@ use NLC\Base\NLCUser;
                 },
                 {
                     title: "Whitelist",
-                    field: "is_public",
                     formatter: function(cell, formatterParams) {
-                        let a = document.createElement("div");
-                        a.style.display="grid";
-                        a.append($(cell.getValue() ? "<span>Sesi publik</span>" : `<span style="color:var(--danger)">NO</span>`)[0]);
-                        if (!cell.getValue()) {
-                            let l = $("<a>Set Whitelist.</a>")[0];
-                            l.href="#";
-                            l.onclick=()=>{
-                                let d = [];
-                                let m = $("#whitelist-modal").modal('show');
-                                let b = $("#setwhitelist-btn")[0].onclick=function(){
-                                    m.modal("hide");
-                                    console.log(d);
-                                    $.post("/nlc/sesi", {
-                                        _token: <?php j(session_id()) ?>,
-                                        id: cell.getData().id,
-                                        act: "set_whitelist",
-                                        d:JSON.stringify(d)
-                                    }, d => {
-                                        cell.getData().whitelisted = d;
-                                        table.redraw();
-                                        showMessage("Whitelisted data updated", "success");
-                                    }).fail(e => {
-                                        table.redraw();
-                                        showMessage(e.statusText, "danger");
-                                    });
-                                };
-                                m.one("shown.bs.modal",()=>{
-                                    user_table.redraw();
-                                    // let userlist_flag = [];
-                                    // cell.getData().whitelisted.forEach(x=>{
-                                    //     userlist_flag = true
-                                    // });
-                                    cell.getData().whitelisted.forEach(a=>{
-                                        user_table.getRows().every(b=>{
-                                            if(b.getData().id == a.id){
-                                                b.select();
-                                                return false;
-                                            }
-                                            return true;
+                        switch (cell.getData().type) {
+                            case <?php j(SesiTerbuka::class) ?>:
+                                return "-";
+                            case <?php j(SesiSelfJoin::class) ?>:
+                            case <?php j(SesiPrivate::class) ?>:
+                                let a = document.createElement("div");
+                                a.style.display = "grid";
+                                a.append($(cell.getValue() ? "<span>Sesi publik</span>" : `<span style="color:var(--danger)">NO</span>`)[0]);
+                                if (!cell.getValue()) {
+                                    let l = $("<a>Set Whitelist.</a>")[0];
+                                    l.href = "#";
+                                    l.onclick = () => {
+                                        let d = [];
+                                        let m = $("#whitelist-modal").modal('show');
+                                        let b = $("#setwhitelist-btn")[0].onclick = function() {
+                                            m.modal("hide");
+                                            console.log(d);
+                                            $.post("/nlc/sesi", {
+                                                _token: <?php j(session_id()) ?>,
+                                                id: cell.getData().id,
+                                                act: "set_whitelist",
+                                                d: JSON.stringify(d)
+                                            }, d => {
+                                                cell.getData().whitelisted = d;
+                                                table.redraw();
+                                                showMessage("Whitelisted data updated", "success");
+                                            }).fail(e => {
+                                                table.redraw();
+                                                showMessage(e.statusText, "danger");
+                                            });
+                                        };
+                                        m.one("shown.bs.modal", () => {
+                                            user_table.deselectRow();
+                                            user_table.redraw();
+                                            // let userlist_flag = [];
+                                            // cell.getData().whitelisted.forEach(x=>{
+                                            //     userlist_flag = true
+                                            // });
+                                            cell.getData().whitelisted.forEach(a => {
+                                                user_table.getRows().every(b => {
+                                                    if (b.getData().id == a.id) {
+                                                        b.select();
+                                                        return false;
+                                                    }
+                                                    return true;
+                                                });
+                                            });
                                         });
-                                    });
-                                });
-                                user_table.options.rowSelectionChanged = function(data,rows){
-                                    d = [];
-                                    data.forEach(a=>{
-                                        d.push(a.id);
-                                    });
+                                        user_table.options.rowSelectionChanged = function(data, rows) {
+                                            d = [];
+                                            data.forEach(a => {
+                                                d.push(a.id);
+                                            });
+                                        }
+                                    };
+                                    a.append(l);
                                 }
-                            };
-                            a.append(l);
+                                return a;
                         }
-                        return a;
                     }
                 },
-                // nama, waktu mulai, waktu selesai, public?, enabled?
+                {
+                    title: "Quota",
+                    field: "quota",
+                    sorter: "number",
+                    headerFilter: "input",
+                    editor: "number",
+                    mutator: (value, data, type, params, cell) => {
+                        if (data.type == <?php j(SesiSelfJoin::class) ?>) {
+                            if (type == "edit") {
+                                $.post("/nlc/sesi", {
+                                    _token: <?php j(session_id()) ?>,
+                                    id: cell.getData().id,
+                                    act: "set_quota",
+                                    v: value
+                                }, d => {
+                                    cell.getData().quota = d;
+                                    table.redraw();
+                                    showMessage("Data updated", "success");
+                                }).fail(e => {
+                                    table.redraw();
+                                    showMessage(e.statusText, "danger");
+                                });
+                                return value;
+                            } else
+                                return value;
+                        }else{
+                            return "-";
+                        }
+                    },
+                    mutatorParams: null
+                }
             ],
             paginationSize: 20,
             pagination: "local"
