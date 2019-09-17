@@ -370,6 +370,10 @@ use NLC\Base\NLCUser;
                                 };
                                 m.one("shown.bs.modal",()=>{
                                     user_table.redraw();
+                                    // let userlist_flag = [];
+                                    // cell.getData().whitelisted.forEach(x=>{
+                                    //     userlist_flag = true
+                                    // });
                                     cell.getData().whitelisted.forEach(a=>{
                                         user_table.getRows().every(b=>{
                                             if(b.getData().id == a.id){
