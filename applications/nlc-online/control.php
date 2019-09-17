@@ -1,14 +1,20 @@
 <?php
-
+use NLC\Base\NLCUser;
 if ($appProp->isMainApp) {
     if (PuzzleUser::isAccess(USER_AUTH_EMPLOYEE)) {
         $a = "admin";
         $d = "sesi";
     } else if (PuzzleUser::isAccess(USER_AUTH_REGISTERED)) {
+        try{
+            NLCUser::getById(PuzzleUser::active()->id);
+        }catch(\Throwable $e){
+            echo "Please login using NLC Account!";
+            PuzzleUser::logout();
+            abort(403);
+        }
         $a = "user";
-    } else {
-        $a = "guest";
-    }
+        $d = "sesi";
+    } 
 
     try {
         #Simple Middleware

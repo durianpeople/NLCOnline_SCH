@@ -4,6 +4,10 @@ use NLC\Base\Questions;
 use NLC\Base\Sesi;
 
 switch ($_POST["act"]) {
+    case "set_whitelist":
+        $s = Sesi::load($_POST['id']);
+        $s->setWhitelist(json_decode($_POST["d"],true));
+        json_out($s->getWhitelist());
     case "fetch":
         json_out(Sesi::list());
     case "en_toggle":
