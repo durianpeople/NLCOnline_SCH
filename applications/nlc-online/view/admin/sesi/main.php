@@ -1,6 +1,7 @@
 <?php
 
 use NLC\Base\Questions;
+use NLC\Base\NLCUser;
 ?>
 
 <link href="https://unpkg.com/tabulator-tables@4.3.0/dist/css/semantic-ui/tabulator_semantic-ui.min.css" rel="stylesheet">
@@ -16,7 +17,7 @@ use NLC\Base\Questions;
     <button class="btn btn-primary" data-toggle="modal" data-target="#new-sesi">Tambah Sesi</button>
 </div>
 
-<div class="modal" id="new-sesi">
+<div class="modal fade" id="new-sesi">
     <div class="modal-dialog" role="document">
         <form method="POST" id="new-sesi-frm">
             <div class="modal-content">
@@ -74,22 +75,43 @@ use NLC\Base\Questions;
     </div>
 </div>
 
+<div class="modal fade" id="whitelist-modal">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Whitelist</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div>
+                    <div id="white-list-tab"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="submit" id="setwhitelist-btn" class="btn btn-primary">Set Whitelist</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <?php ob_start() ?>
 <script>
     (function() {
-        $("#new-sesi-frm").submit(e=>{
+        $("#new-sesi-frm").submit(e => {
             e.preventDefault();
             let f = $(e.target).serialize();
             f += `&act=new_modal&_token=<?php echo (session_id()) ?>`;
             console.log(f);
-            $.post("/nlc/sesi",f,d=>{
-                showMessage("Sesi terimpan" , "success");
+            $.post("/nlc/sesi", f, d => {
+                showMessage("Sesi terimpan", "success");
                 location.reload();
-            }).fail(e=>{
-                console.log(e);
-                showMessage("Gagal Membuat" , "danger");
+            }).fail(e => {
+                showMessage("Gagal Membuat", "danger");
             })
         });
+        let ulist = <?php j(NLCUser::getList())?>;
         let Slist = <?php j(Questions::list()) ?>;
         var dateEditor = function(cell, onRendered, success, cancel, editorParams) {
             //cell - the cell component for the editable cell
@@ -128,6 +150,36 @@ use NLC\Base\Questions;
             //return the editor element
             return editor;
         };
+        console.log(ulist);
+        var user_table = new Tabulator(document.getElementById("white-list-tab"),{
+            selectable:true,
+            selectableRollingSelection:true,
+            selectablePersistence:true,
+            layoutColumnsOnNewData: true,
+            paginationSize: 20,
+            pagination: "local",
+            resizableRows: false,
+            resizableColumns: false,
+            columns:[
+                {
+                    title:"ID NLC",
+                    field:"nlc_id",
+                    headerFilter:"input"
+                },
+                {
+                    title:"Email",
+                    field:"email",
+                    headerFilter:"input"
+                },
+                {
+                    title:"Nama Tim",
+                    field:"fullname",
+                    headerFilter:"input"
+                }
+            ]
+        });
+        user_table.setData(ulist);
+        console.log(user_table);
         var table = new Tabulator(document.getElementById("data"), {
             ajaxURL: "/nlc/sesi",
             ajaxConfig: "POST",
@@ -152,10 +204,10 @@ use NLC\Base\Questions;
                                 act: "set_name",
                                 name: value
                             }, d => {
-                                table.replaceData();
+                                table.redraw();
                                 showMessage("Data updated", "success");
                             }).fail(e => {
-                                table.replaceData();
+                                table.redraw();
                                 showMessage(e.statusText, "danger");
                             });
                             return value;
@@ -188,10 +240,10 @@ use NLC\Base\Questions;
                                 q_id: s.value
                             }, d => {
                                 cell.getData().questions = d;
-                                table.replaceData();
+                                table.redraw();
                                 showMessage("Data updated", "success");
                             }).fail(e => {
-                                table.replaceData();
+                                table.redraw();
                                 showMessage(e.statusText, "danger");
                             });
                         }
@@ -216,10 +268,10 @@ use NLC\Base\Questions;
                                 start_time: value
                             }, d => {
                                 cell.getData().start_time = d;
-                                table.replaceData();
+                                table.redraw();
                                 showMessage("Data updated", "success");
                             }).fail(e => {
-                                table.replaceData();
+                                table.redraw();
                                 showMessage(e.statusText, "danger");
                             });
                             return value;
@@ -244,10 +296,10 @@ use NLC\Base\Questions;
                                 end_time: value
                             }, d => {
                                 cell.getData().end_time = d;
-                                table.replaceData();
+                                table.redraw();
                                 showMessage("Data updated", "success");
                             }).fail(e => {
-                                table.replaceData();
+                                table.redraw();
                                 showMessage(e.statusText, "danger");
                             });
                             return value;
@@ -270,10 +322,10 @@ use NLC\Base\Questions;
                                 act: "en_toggle"
                             }, d => {
                                 cell.getData().enabled = d;
-                                table.replaceData();
+                                table.redraw();
                                 showMessage("Data updated", "success");
                             }).fail(e => {
-                                table.replaceData();
+                                table.redraw();
                                 showMessage(e.statusText, "danger");
                             });
                         };
@@ -281,16 +333,63 @@ use NLC\Base\Questions;
                             if (confirm("DANGER!\nMatikan sesi ini? Semua data jawaban peserta akan dihapus!!")) {
                                 f();
                             } else {
-                                table.replaceData();
+                                table.redraw();
                             }
                         } else f();
                     }
                 },
                 {
-                    title: "For Public?",
+                    title: "Whitelist",
                     field: "is_public",
                     formatter: function(cell, formatterParams) {
-                        return cell.getValue() ? "Yes" : `<span style="var(--danger)">NO</span>`
+                        let a = document.createElement("div");
+                        a.style.display="grid";
+                        a.append($(cell.getValue() ? "<span>Sesi publik</span>" : `<span style="color:var(--danger)">NO</span>`)[0]);
+                        if (!cell.getValue()) {
+                            let l = $("<a>Set Whitelist.</a>")[0];
+                            l.href="#";
+                            l.onclick=()=>{
+                                let d = [];
+                                let m = $("#whitelist-modal").modal('show');
+                                let b = $("#setwhitelist-btn")[0].onclick=function(){
+                                    m.modal("hide");
+                                    console.log(d);
+                                    $.post("/nlc/sesi", {
+                                        _token: <?php j(session_id()) ?>,
+                                        id: cell.getData().id,
+                                        act: "set_whitelist",
+                                        d:JSON.stringify(d)
+                                    }, d => {
+                                        cell.getData().whitelisted = d;
+                                        table.redraw();
+                                        showMessage("Whitelisted data updated", "success");
+                                    }).fail(e => {
+                                        table.redraw();
+                                        showMessage(e.statusText, "danger");
+                                    });
+                                };
+                                m.one("shown.bs.modal",()=>{
+                                    user_table.redraw();
+                                    cell.getData().whitelisted.forEach(a=>{
+                                        user_table.getRows().every(b=>{
+                                            if(b.getData().id == a.id){
+                                                b.select();
+                                                return false;
+                                            }
+                                            return true;
+                                        });
+                                    });
+                                });
+                                user_table.options.rowSelectionChanged = function(data,rows){
+                                    d = [];
+                                    data.forEach(a=>{
+                                        d.push(a.id);
+                                    });
+                                }
+                            };
+                            a.append(l);
+                        }
+                        return a;
                     }
                 },
                 // nama, waktu mulai, waktu selesai, public?, enabled?

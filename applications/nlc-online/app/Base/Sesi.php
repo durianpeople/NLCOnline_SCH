@@ -10,6 +10,7 @@ use NLC\Throwable\AccessDenied;
 use NLC\Throwable\InvalidAction;
 use NLC\Throwable\SesiNotStarted;
 use PuzzleUser;
+use NLC\Base\NLCUser;
 
 /**
  * Sesi class
@@ -83,7 +84,10 @@ class Sesi implements \JsonSerializable
     {
         if (!PuzzleUser::isAccess(USER_AUTH_REGISTERED)) throw new AccessDenied;
         if (null !== $data = \Database::getRow("app_nlc_sesi", "id", $id)) {
-            if ((bool) $data['is_public'] == false && !PuzzleUser::isAccess(USER_AUTH_EMPLOYEE)) throw new AccessDenied;
+            if ((bool) $data['is_public'] == false && !PuzzleUser::isAccess(USER_AUTH_EMPLOYEE)) {
+                $db = \Database::execute("SELECT 1 FROM app_nlc_sesi_whitelist WHERE sesi_id = '?' AND `user_id` = '?'", $id, PuzzleUser::active()->id);
+                if (mysqli_num_rows($db) == 0) throw new AccessDenied;
+            }
             $this->id = (string) $data['id'];
             $this->name = $data['name'];
             $this->start_time = (int) $data['start_time'];
@@ -149,6 +153,7 @@ class Sesi implements \JsonSerializable
     public function enable(): bool
     {
         if (!PuzzleUser::isAccess(USER_AUTH_EMPLOYEE)) throw new AccessDenied;
+        if ($this->questions == null) throw new InvalidAction("Sesi should be assigned Questions");
         $this->enabled = true;
         return $this->commit();
     }
@@ -163,6 +168,37 @@ class Sesi implements \JsonSerializable
         );
         $this->enabled = false;
         return $this->commit();
+    }
+
+    /**
+     * @param int[] $ids
+     */
+    public function setWhitelist(array $ids): bool
+    {
+        if (!PuzzleUser::isAccess(USER_AUTH_EMPLOYEE)) throw new AccessDenied;
+        if ($this->enabled) throw new SesiNotDisabled;
+        \Database::delete("app_nlc_sesi_whitelist", "sesi_id", $this->id);
+        $payload = [];
+        foreach ($ids as $id) {
+            $payload[] = (new \DatabaseRowInput)
+                ->setField("sesi_id", $this->id)
+                ->setField("user_id", $id);
+        }
+        return (bool) (\Database::insert("app_nlc_sesi_whitelist", $payload, true));
+    }
+    /**
+     * 
+     *
+     * @return \NLC\Base\NLCUser[]
+     */
+    public function getWhitelist()
+    {
+        $ids = [];
+        $db = \Database::execute("SELECT `user_id` FROM app_nlc_sesi_whitelist WHERE sesi_id = '?'", $this->id);
+        while ($row = $db->fetch_assoc()) {
+            $ids[] = NLCUser::getById($row['user_id']);
+        }
+        return $ids;
     }
 
     public function enrollCheck(): bool
@@ -210,16 +246,29 @@ class Sesi implements \JsonSerializable
     }
 
     public function jsonSerialize()
-    {
-        return [
-            "id" => (int) $this->id,
-            "name" => $this->name,
-            "start_time" => $this->start_time,
-            "end_time" => $this->end_time,
-            "enabled" => $this->enabled,
-            "is_public" => $this->is_public,
-            "questions" => $this->questions ?? null,
-        ];
+    { 
+        if(PuzzleUser::isAccess(USER_AUTH_EMPLOYEE)){
+            return [
+                "id" => (int) $this->id,
+                "name" => $this->name,
+                "start_time" => $this->start_time,
+                "end_time" => $this->end_time,
+                "enabled" => $this->enabled,
+                "is_public" => $this->is_public,
+                "questions" => $this->questions ?? null,
+                "whitelisted" => $this->getWhitelist(),
+            ];
+        }else{
+            return [
+                "id" => (int) $this->id,
+                "name" => $this->name,
+                "start_time" => $this->start_time,
+                "end_time" => $this->end_time,
+                "enabled" => $this->enabled,
+                // "is_public" => $this->is_public,
+                "questions" => $this->questions ?? null
+            ];   
+        }
     }
 
     private function commit(): bool

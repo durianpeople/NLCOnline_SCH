@@ -5,3 +5,8 @@ spl_autoload_register(function ($c) {
         if (file_exists($path)) require $path;
     }
 });
+
+
+PuzzleUser::registerPostLoginCallback(function(){
+    PuzzleSession::endUser(PuzzleUser::active()->id);
+});

@@ -20,10 +20,4 @@
         <span>Sesi</span>
         <i class="icon s-18 pull-right"></i>
     </a>
-
-    <a href="menu_soal.html">
-        <i class="icon icon-documents3 blue-text s-18"></i>
-        <span>Soal</span>
-        <i class="icon s-18 pull-right"></i>
-    </a>
 <?php endif ?>
