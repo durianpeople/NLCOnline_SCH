@@ -354,7 +354,7 @@ use NLC\Sesi\SesiTerbuka;
                         };
                         if (v) {
                             if (confirm("DANGER!\nMatikan sesi ini? Semua data jawaban peserta akan dihapus!!")) {
-                                f();
+                                if(confirm("HAPUS SEMUA JAWABAN PESERTA?")) f();
                             } else {
                                 table.replaceData();
                                 table.redraw();
