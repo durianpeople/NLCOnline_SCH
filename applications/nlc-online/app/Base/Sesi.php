@@ -130,6 +130,7 @@ abstract class Sesi implements \JsonSerializable
                 break;
             case "questions":
                 if (!($value instanceof Questions) && $value !== null) throw new InvalidAction("Value is not of type Questions");
+                if (!$value->hasPDF()) throw new InvalidAction("Questions should have PDF");
                 $this->questions = $value;
                 break;
             default:

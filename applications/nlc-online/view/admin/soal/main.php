@@ -186,9 +186,8 @@ use NLC\Base\Questions;
                 {
                     title: "Upload Soal",
                     formatter: function(cell, formatterParams) {
-                        let a;
-                        if (a = cell.getData().question_pdf_url) {
-                            return `<a href="${a}"><button class="btn btn-sm btn-primary">DOWNLOAD SOAL</button></a>`;
+                        if (cell.getData().hasPDF) {
+                            return `<a href="/nlc/q?q=${cell.getData().id}"><button class="btn btn-sm btn-primary">DOWNLOAD SOAL</button></a>`;
                         } else {
                             let a = document.createElement("input");
                             a.type = "file";
@@ -209,7 +208,7 @@ use NLC\Base\Questions;
                                         contentType: false,
                                         processData: false,
                                         success: function(response) {
-                                            cell.getData().question_pdf_url = response
+                                            cell.getData().hasPDF = response;
                                             table.replaceData();
                                         }
                                     }).fail(e => {
