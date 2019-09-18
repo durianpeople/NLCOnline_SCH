@@ -3,6 +3,7 @@
 namespace NLC\Sesi;
 
 use NLC\Base\Sesi;
+use NLC\Enum\SesiStatus;
 
 class SesiTerbuka extends Sesi
 {
@@ -21,5 +22,13 @@ class SesiTerbuka extends Sesi
             $crt > $this->end_time ||
             $this->enabled == false) return false;
         return true;
+    }
+
+    public function getStatus()
+    {
+        $crt = time();
+        if ($crt < $this->start_time) return SesiStatus::NotStarted;
+        if ($crt > $this->start_time && $crt < $this->end_time) return SesiStatus::Ongoing;
+        return SesiStatus::Done;
     }
 }

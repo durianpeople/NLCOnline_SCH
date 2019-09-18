@@ -5,6 +5,7 @@
     <meta charset="utf-8" />
     <?php $tmpl->dumpHeaders(); ?>
     <title>Yeay! Found our 404 page!</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="<?php echo $tmpl->url ?>/css/app.css" />
     <style>
         .loader {

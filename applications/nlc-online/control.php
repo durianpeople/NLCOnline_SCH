@@ -1,20 +1,24 @@
 <?php
+
 use NLC\Base\NLCUser;
+
 if ($appProp->isMainApp) {
+    define("_PRODUCTION", file_exists(__ROOTDIR . "/production"));
+
     if (PuzzleUser::isAccess(USER_AUTH_EMPLOYEE)) {
         $a = "admin";
         $d = "sesi";
     } else if (PuzzleUser::isAccess(USER_AUTH_REGISTERED)) {
-        try{
+        try {
             NLCUser::getById(PuzzleUser::active()->id);
-        }catch(\Throwable $e){
+        } catch (\Throwable $e) {
             echo "Please login using NLC Account!";
             PuzzleUser::logout();
             abort(403);
         }
         $a = "user";
         $d = "sesi";
-    } 
+    }
 
     try {
         #Simple Middleware
@@ -28,9 +32,13 @@ if ($appProp->isMainApp) {
         if (file_exists($controller_path) && is_file($controller_path)) {
             $appProp->bundle["view"] = "$a/$request/" . require $controller_path;
         } else {
-            $appProp->bundle["view"] = "$a/$d/" . require "controller/$a/$d.php";
+            if (file_exists(my_dir("controller/uni/$request.php"))) {
+                $appProp->bundle["view"] = "uni/$request/" . require "controller/uni/$request.php";
+            } else {
+                $appProp->bundle["view"] = "$a/$d/" . require "controller/$a/$d.php";
+            }
         }
     } catch (\Throwable $e) {
-        abort(500, $e->getMessage());
+        abort(400, _PRODUCTION && !PuzzleUser::isAccess(USER_AUTH_EMPLOYEE) ? "Cannot fulfill your request" : $e->getMessage());
     }
 }

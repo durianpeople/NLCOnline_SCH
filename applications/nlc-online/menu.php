@@ -15,7 +15,7 @@
         <i class="icon s-18 pull-right"></i>
     </a>
 <?php elseif (PuzzleUser::isAccess(USER_AUTH_REGISTERED)) : ?>
-    <a href="menu_sesi.html">
+    <a href="/nlc/sesi">
         <i class="icon icon-th-list purple-text s-18"></i>
         <span>Sesi</span>
         <i class="icon s-18 pull-right"></i>

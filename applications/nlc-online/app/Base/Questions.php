@@ -88,7 +88,7 @@ class Questions implements \JsonSerializable
             case "name":
                 return $this->name;
             case "question_pdf_url":
-                return \UserData::getURL("QUESTION_" . $this->id) ?? null;
+                return "/nlc/q?q={$this->id}";
         }
     }
 
@@ -133,6 +133,14 @@ class Questions implements \JsonSerializable
         return $ak;
     }
 
+    /**
+     * @return int
+     */
+    public function jumlahsoal() {
+        $db = \Database::execute("SELECT COUNT(1) FROM app_nlc_questions_answerkey WHERE question_id = '?'", $this->id);
+        return (int) $db->fetch_row()[0];
+    }
+
     public function jsonSerialize()
     {
         if (PuzzleUser::isAccess(USER_AUTH_EMPLOYEE)) {
@@ -140,6 +148,7 @@ class Questions implements \JsonSerializable
                 "id" => $this->id,
                 "name" => $this->name,
                 "question_pdf_url" => $this->__get("question_pdf_url"),
+                "question_num" => $this->jumlahsoal(),
                 "answer_key" => $this->getAnswerKey(),
             ];
         } else {
@@ -147,6 +156,7 @@ class Questions implements \JsonSerializable
                 "id" => $this->id,
                 "name" => $this->name,
                 "question_pdf_url" => $this->__get("question_pdf_url"),
+                "question_num" => $this->jumlahsoal()
             ];
         }
     }

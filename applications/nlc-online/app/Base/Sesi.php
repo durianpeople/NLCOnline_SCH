@@ -7,6 +7,9 @@ use NLC\Throwable\InvalidTimeInterval;
 use NLC\Throwable\SesiNotDisabled;
 use NLC\Throwable\AccessDenied;
 use NLC\Throwable\InvalidAction;
+use NLC\Sesi\SesiTerbuka;
+use NLC\Sesi\SesiPrivate;
+use NLC\Sesi\SesiSelfJoin;
 use PuzzleUser;
 
 /**
@@ -22,13 +25,13 @@ use PuzzleUser;
 abstract class Sesi implements \JsonSerializable
 {
     private static $singleton = [];
-
+    
     private $id;
     private $name;
     private $start_time;
     private $end_time;
     private $enabled;
-
+    
     /**
      * Questions assigned to this class
      *
@@ -36,6 +39,7 @@ abstract class Sesi implements \JsonSerializable
      */
     private $questions = null;
     abstract public function enrollCheck(): bool;
+    abstract public function getStatus();
     protected function afterLoad()
     { }
 
@@ -62,18 +66,31 @@ abstract class Sesi implements \JsonSerializable
     /**
      * @return Sesi[]
      */
-    public static function list()
+    public static function list(bool $only_enabled_and_whitelisted = false)
     {
         $ss = [];
         $db = \Database::execute("SELECT id FROM app_nlc_sesi");
         while ($row = $db->fetch_assoc()) {
             try {
-                $ss[] = self::load($row['id']);
+                $a = self::load($row['id']);
+                if($only_enabled_and_whitelisted){
+                    //1. Enabled, 2. Terbuka, 3. SelfJoin
+                    if($a->enabled && ($a instanceof SesiTerbuka || $a instanceof SesiSelfJoin)){
+                        $ss[] = $a;
+                    } else if ($a instanceof SesiPrivate && $a->isMeAllowed()) {
+                        $ss[] = $a;
+                    }
+                }else{
+                    $ss[] = $a;
+                }
             } catch (\Exception $e) { }
         }
         return $ss;
     }
 
+    /**
+     * @return self
+     */
     public static function load(int $id)
     {
         if (null !== $data = \Database::getRow("app_nlc_sesi", "id", $id)) {
@@ -125,7 +142,7 @@ abstract class Sesi implements \JsonSerializable
     {
         switch ($name) {
             case "id":
-                return $this->id;
+                return (int)$this->id;
             case "name":
                 return $this->name;
             case "start_time":
@@ -135,7 +152,7 @@ abstract class Sesi implements \JsonSerializable
             case "enabled":
                 return $this->enabled;
             case "questions":
-                if (!PuzzleUser::isAccess(USER_AUTH_EMPLOYEE) && !$this->enrollCheck()) return null;
+                if (!PuzzleUser::isAccess(USER_AUTH_EMPLOYEE) && $this->enabled == false && !$this->enrollCheck()) return null;
                 return $this->questions;
         }
     }
@@ -147,6 +164,12 @@ abstract class Sesi implements \JsonSerializable
         $this->questions = null;
         $this->commit();
     }
+
+    final public function getRemainingTime()
+    { 
+        return $this->end_time - time();
+    }
+
 
     public function enable(): bool
     {
@@ -170,7 +193,7 @@ abstract class Sesi implements \JsonSerializable
 
     public function pushAnswer(int $number, int $answer)
     {
-        if ($this->enrollCheck()) {
+        if ($this->enabled && $this->enrollCheck()) {
             \Database::execute(
                 "INSERT INTO `app_nlc_sesi_user_log` (`sesi_id`, `user_id`, `number`, `answer`) 
                 VALUES ('?', '?', '?', '?')",
@@ -179,7 +202,9 @@ abstract class Sesi implements \JsonSerializable
                 $number,
                 $answer
             );
+            return true;
         }
+        return false;
     }
 
     public function retrieveAnswer()
@@ -199,7 +224,7 @@ abstract class Sesi implements \JsonSerializable
             while ($row = $db->fetch_assoc()) {
                 $obj[$row['number']] = $row['answer'];
             }
-            json_out($obj);
+            return($obj);
         }
     }
 
@@ -212,7 +237,9 @@ abstract class Sesi implements \JsonSerializable
             "end_time" => $this->__get("end_time"),
             "enabled" => $this->__get("enabled"),
             "questions" => $this->__get("questions"),
-            "type"=>get_class($this)
+            "type" => get_class($this),
+            "status" => $this->getStatus(),
+            "old_answer" => $this->retrieveAnswer() ?? null
         ];
     }
 
