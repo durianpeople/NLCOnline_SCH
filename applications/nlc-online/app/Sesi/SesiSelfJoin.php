@@ -4,6 +4,7 @@ namespace NLC\Sesi;
 
 use NLC\Base\Sesi;
 use NLC\Enum\SesiStatus;
+use NLC\Throwable\SesiNotDisabled;
 use NLC\Throwable\SesiNotFound;
 use PuzzleError;
 use PuzzleUser;
@@ -33,6 +34,7 @@ class SesiSelfJoin extends SesiPrivate
 
     public function __set($name, $value)
     {
+        if ($this->enabled == true) throw new SesiNotDisabled;
         switch ($name) {
             case "quota":
                 if (!is_numeric($value)) throw new \InvalidArgumentException("Expecting integer or number");
