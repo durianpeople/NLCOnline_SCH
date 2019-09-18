@@ -5,6 +5,7 @@ namespace NLC\Sesi;
 use NLC\Base\Sesi;
 use NLC\Enum\SesiStatus;
 use NLC\Throwable\SesiNotFound;
+use PuzzleError;
 use PuzzleUser;
 
 
@@ -57,11 +58,15 @@ class SesiSelfJoin extends SesiPrivate
     {
         \Database::lock("app_nlc_sesi_whitelist", "WRITE");
         if ($this->getRemainingQuota() > 0) {
-            \Database::execute(
-                "INSERT into app_nlc_sesi_whitelist (sesi_id, `user_id`) VALUES ('?','?')",
-                $this->id,
-                PuzzleUser::active()->id
-            );
+            try {
+                \Database::execute(
+                    "INSERT into app_nlc_sesi_whitelist (sesi_id, `user_id`) VALUES ('?','?')",
+                    $this->id,
+                    PuzzleUser::active()->id
+                );
+            } catch (\DatabaseError $e) {
+                throw new PuzzleError("Hanya bisa daftar di satu sesi saja");
+            }
         }
         \Database::unlock();
         return \Database::affectedRows() > 0;
