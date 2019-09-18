@@ -4,6 +4,7 @@ namespace NLC\Sesi;
 
 use NLC\Base\Sesi;
 use NLC\Base\NLCUser;
+use NLC\Enum\SesiStatus;
 use NLC\Throwable\SesiNotDisabled;
 
 class SesiPrivate extends Sesi
@@ -16,17 +17,31 @@ class SesiPrivate extends Sesi
         return parent::create($name, $start_time, $end_time, get_called_class());
     }
 
+    protected function isMeAllowed()
+    {
+        $db = \Database::execute("SELECT 1 FROM app_nlc_sesi_whitelist WHERE sesi_id = '?' AND `user_id` = '?'", $this->id, \PuzzleUser::active()->id);
+        return $db->num_rows > 0;
+    }
+
     public function enrollCheck(): bool
     {
         $crt = time();
         if (
             $crt < $this->start_time ||
             $crt > $this->end_time ||
-            $this->enabled == false
+            $this->enabled == false ||
+            !$this->isMeAllowed()
         ) return false;
-        $db = \Database::execute("SELECT 1 FROM app_nlc_sesi_whitelist WHERE sesi_id = '?' AND `user_id` = '?'", $this->id, \PuzzleUser::active()->id);
-        if ($db->num_rows == 0) throw new AccessDenied;
         return true;
+    }
+
+    public function getStatus()
+    {
+        $crt = time();
+        if (!$this->isMeAllowed()) return SesiStatus::NotAllowed;
+        if ($crt < $this->start_time) return SesiStatus::NotStarted;
+        if ($crt > $this->start_time && $crt < $this->end_time) return SesiStatus::Ongoing;
+        return SesiStatus::Done;
     }
 
     /**

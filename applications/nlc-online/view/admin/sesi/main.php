@@ -212,9 +212,11 @@ use NLC\Sesi\SesiTerbuka;
                                 act: "set_name",
                                 name: value
                             }, d => {
+                                table.replaceData();
                                 table.redraw();
                                 showMessage("Data updated", "success");
                             }).fail(e => {
+                                table.replaceData();
                                 table.redraw();
                                 showMessage(e.statusText, "danger");
                             });
@@ -253,9 +255,11 @@ use NLC\Sesi\SesiTerbuka;
                                 q_id: s.value
                             }, d => {
                                 cell.getData().questions = d;
+                                table.replaceData();
                                 table.redraw();
                                 showMessage("Data updated", "success");
                             }).fail(e => {
+                                table.replaceData();
                                 table.redraw();
                                 showMessage(e.statusText, "danger");
                             });
@@ -281,9 +285,11 @@ use NLC\Sesi\SesiTerbuka;
                                 start_time: value
                             }, d => {
                                 cell.getData().start_time = d;
+                                table.replaceData();
                                 table.redraw();
                                 showMessage("Data updated", "success");
                             }).fail(e => {
+                                table.replaceData();
                                 table.redraw();
                                 showMessage(e.statusText, "danger");
                             });
@@ -309,9 +315,11 @@ use NLC\Sesi\SesiTerbuka;
                                 end_time: value
                             }, d => {
                                 cell.getData().end_time = d;
+                                table.replaceData();
                                 table.redraw();
                                 showMessage("Data updated", "success");
                             }).fail(e => {
+                                table.replaceData();
                                 table.redraw();
                                 showMessage(e.statusText, "danger");
                             });
@@ -335,9 +343,11 @@ use NLC\Sesi\SesiTerbuka;
                                 act: "en_toggle"
                             }, d => {
                                 cell.getData().enabled = d;
+                                table.replaceData();
                                 table.redraw();
                                 showMessage("Data updated", "success");
                             }).fail(e => {
+                                table.replaceData();
                                 table.redraw();
                                 showMessage(e.statusText, "danger");
                             });
@@ -346,6 +356,7 @@ use NLC\Sesi\SesiTerbuka;
                             if (confirm("DANGER!\nMatikan sesi ini? Semua data jawaban peserta akan dihapus!!")) {
                                 f();
                             } else {
+                                table.replaceData();
                                 table.redraw();
                             }
                         } else f();
@@ -378,15 +389,18 @@ use NLC\Sesi\SesiTerbuka;
                                                 d: JSON.stringify(d)
                                             }, d => {
                                                 cell.getData().whitelisted = d;
+                                                table.replaceData();
                                                 table.redraw();
                                                 showMessage("Whitelisted data updated", "success");
                                             }).fail(e => {
+                                                table.replaceData();
                                                 table.redraw();
                                                 showMessage(e.statusText, "danger");
                                             });
                                         };
                                         m.one("shown.bs.modal", () => {
                                             user_table.deselectRow();
+                                            table.replaceData();
                                             user_table.redraw();
                                             // let userlist_flag = [];
                                             // cell.getData().whitelisted.forEach(x=>{
@@ -431,9 +445,11 @@ use NLC\Sesi\SesiTerbuka;
                                     v: value
                                 }, d => {
                                     cell.getData().quota = d;
+                                    table.replaceData();
                                     table.redraw();
                                     showMessage("Data updated", "success");
                                 }).fail(e => {
+                                    table.replaceData();
                                     table.redraw();
                                     showMessage(e.statusText, "danger");
                                 });

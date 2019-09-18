@@ -6,7 +6,7 @@ Frontend:
         /admin/sesi                         =>  List sesi
             /admin/sesi/{create atau id}    =>  Administrasi sesi (buat baru atau edit)
 
-        ## TAMBAHAN FITUR: SESI WHITELIST ##
+        ## TAMBAHAN FITUR: SESI WHITELIST ##https://prod.liveshare.vsengsaas.visualstudio.com/join?5866FD10BEB6AC91EF20A82E403F0AB17503https://prod.liveshare.vsengsaas.visualstudio.com/join?5866FD10BEB6AC91EF20A82E403F0AB17503
 
                 /admin/sesi/judge/{id}      =>  Judge jawaban peserta (lihat nilai)
         /admin/paket                        =>  List paket soal
