@@ -17,7 +17,7 @@ switch ($_POST["act"]) {
         // /tmp/php/903cscj
         // apa.pdf
         $q->uploadQuestionPDF("file");
-        json_out($q->question_pdf_url);
+        json_out($q->hasPDF());
     case "new_modal":
         json_out($q = Questions::create($_POST['name']));
 }

@@ -16,7 +16,6 @@ use PuzzleUser;
  * Questions class
  * 
  * @property-read int $id
- * @property-read string $question_pdf_url
  * @property string $name
  */
 class Questions implements \JsonSerializable
@@ -87,17 +86,20 @@ class Questions implements \JsonSerializable
                 return $this->id;
             case "name":
                 return $this->name;
-            case "question_pdf_url":
-                return "/nlc/q?q={$this->id}";
         }
     }
 
     public function uploadQuestionPDF($input_name)
     {
-        if (\UserData::exists("QUESTION_" . $this->id)) throw new QuestionsIsPermanent;
+        if ($this->hasPDF()) throw new QuestionsIsPermanent;
         if (!PuzzleUser::isAccess(USER_AUTH_EMPLOYEE)) throw new AccessDenied;
         if (!\UserData::move_uploaded("QUESTION_" . $this->id, $input_name, true)) throw new \IOError("Cannot move PDF file");
         return true;
+    }
+
+    public function hasPDF(): bool
+    {
+        return \UserData::exists("QUESTION_" . $this->id);
     }
 
     public function uploadAnswerKey($csv_file)
@@ -147,15 +149,14 @@ class Questions implements \JsonSerializable
             return [
                 "id" => $this->id,
                 "name" => $this->name,
-                "question_pdf_url" => $this->__get("question_pdf_url"),
                 "question_num" => $this->jumlahsoal(),
                 "answer_key" => $this->getAnswerKey(),
+                "hasPDF" => $this->hasPDF(),
             ];
         } else {
             return [
                 "id" => $this->id,
                 "name" => $this->name,
-                "question_pdf_url" => $this->__get("question_pdf_url"),
                 "question_num" => $this->jumlahsoal()
             ];
         }
