@@ -152,7 +152,7 @@ use NLC\Sesi\SesiPrivate;
                 switch (i.type) {
                     case <?php j(SesiSelfJoin::class) ?>:
                         el.find(".quota").html(i.remaining);
-                        if (i.status != 1 && i.joined) jb.remove();
+                        if ((i.status != 1 && i.joined) || i.status == 2) jb.remove();
                         else if (!i.joined) {
                             jb.text("Daftar ke Sesi Ini").click(e => {
                                 jb[0].disabled = true;
@@ -177,7 +177,7 @@ use NLC\Sesi\SesiPrivate;
                     case <?php j(SesiPrivate::class) ?>:
                     case <?php j(SesiTerbuka::class) ?>:
                         el.find(".q_c").remove();
-                        if (i.status != 1) jb.remove();
+                        if (i.status != 1 || i.status == 2) jb.remove();
                         else if (i.status == 1) {
                             jb.text("Kerjakan Soal").click(e => {
                                 location.href = `/nlc/answer?s=${i.id}`;

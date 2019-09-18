@@ -8,10 +8,19 @@
     .abcdef {
         display: grid;
         grid-template-columns: 30px auto;
+        padding: 5px;
+        margin: 10px 0;
+        background: #f2d32b14;
+        align-items: center;
+    }
+
+    .abcdef.ans {
+        background: #fff;
     }
 
     .abcdef label {
         padding-right: 15px;
+        margin: 0;
     }
 
     .abcdef input {
@@ -37,8 +46,10 @@
         display: none !important;
     }
 
-    .panel-kanan-bold{
-        font-weight:bold;font-size:20px;text-align:center;
+    .panel-kanan-bold {
+        font-weight: bold;
+        font-size: 20px;
+        text-align: center;
     }
 </style>
 <?php echo Minifier::outCSSMin() ?>
@@ -70,7 +81,7 @@
                     <div class="panel-kanan-bold panel-waktu">-</div>
                     <hr>
                     <h3>Terjawab</h3>
-                    <div class="panel-kanan-bold panel-terjawab">2 / 50 soal</div>
+                    <div class="panel-kanan-bold panel-terjawab">-</div>
                     <!-- <hr>
                     <h3>Kode Soal</h3>
                     <div class="panel-kanan-bold">NLC2009</div> -->
@@ -83,7 +94,7 @@
     </div>
 </div>
 
-<div class="abcdef tmpl">
+<div class="abcdef tmpl ans">
     <div class="snum"></div>
     <div style="display:flex;">
         <label><input type="radio" value="0"> A</label>
@@ -97,7 +108,7 @@
 <?php ob_start() ?>
 <script>
     (function() {
-        let sesi = JSON.parse(atob("<?php echo(base64_encode(json_encode($sesi)))?>"));
+        let sesi = JSON.parse(atob("<?php echo (base64_encode(json_encode($sesi))) ?>"));
         let soal = sesi.questions;
         let abcdefT = $(".abcdef.tmpl");
         let fcol = $(".fcol");
@@ -106,30 +117,30 @@
         let panel_waktu = $(".panel-waktu");
         let timer;
 
-        function timerTick()
-        {
-            timer = setInterval(()=>{
+        function timerTick() {
+            timer = setInterval(() => {
                 let d = moment(sesi.end_time) - moment().unix();
-                let h = String(Math.floor((d % (60 * 60 * 24)) / (60 * 60))).padStart(2,'0');
-                let s = String(Math.floor((d % (60)))).padStart(2,'0');
-                let m = String(Math.floor((d % (60 * 60)) / (60))).padStart(2,'0');
+                let h = String(Math.floor((d % (60 * 60 * 24)) / (60 * 60))).padStart(2, '0');
+                let s = String(Math.floor((d % (60)))).padStart(2, '0');
+                let m = String(Math.floor((d % (60 * 60)) / (60))).padStart(2, '0');
                 panel_waktu.text(`${h}:${m}:${s} detik lagi`);
-                if(d <= 0){
+                if (d <= 0) {
                     clearInterval(timer);
                     fcol.children().remove();
                     scol.children().remove();
                     alert("Waktu pengerjaan sudah habis!");
                     location = "/";
                 }
-            },500);
+            }, 500);
         }
 
-        function calcTerjawab()
-        {
+        function calcTerjawab() {
             panel_terjawab.text(`${Object.keys(sesi.old_answer).length} / ${sesi.questions.question_num} soal`);
         }
 
         function onAnswered() {
+            $(".abcdef input[type=radio]").parent().css('font-weight',"");
+            $(".abcdef input[type=radio]:checked").parent().css('font-weight',"bold");
             calcTerjawab();
         }
 
@@ -154,6 +165,7 @@
                     }, d => {
                         if (d) {
                             sesi.old_answer[i] = e.target.value;
+                            c.removeClass("ans");
                             onAnswered();
                         } else {
                             showMessage("Tidak bisa mengirimkan jawaban", "danger");
@@ -164,14 +176,16 @@
                     });
                 });
                 c.appendTo(i <= na ? fcol : scol);
-                if(sesi.old_answer[i]){
+                if (sesi.old_answer[i]) {
+                    c.removeClass("ans");
                     c.find(`input[type=radio][value=${sesi.old_answer[i]}]`)[0].checked = true;
                 }
             }
+            $(".abcdef input[type=radio]:checked").parent().css('font-weight',"bold");
         }
 
-        $(".sss").click(()=>{
-            if(confirm("Sudah selesai mengerjakan?\nKalian dapat mengubah jawaban selama waktunya masih ada.")){
+        $(".sss").click(() => {
+            if (confirm("Sudah selesai mengerjakan?\nKalian dapat mengubah jawaban selama waktunya masih ada.")) {
                 clearInterval(timer);
                 fcol.children().remove();
                 scol.children().remove();

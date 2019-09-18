@@ -6,25 +6,8 @@
     <?php $tmpl->dumpHeaders(); ?>
     <title><?php if ($tmpl->title != "") echo $tmpl->title . " - "; ?><?php echo __SITENAME; ?></title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="<?php echo $tmpl->url ?>/css/app.css" />
+    <link rel="stylesheet" href="<?php echo $tmpl->url ?>/css/app2.css" />
     <style>
-        .loader {
-            position: fixed;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: #f5f8fa;
-            z-index: 9998;
-            text-align: center;
-        }
-
-        .plane-container {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-        }
-
         #loginCtn .helpform {
             display: none;
         }
@@ -33,67 +16,14 @@
 </head>
 
 <body class="light">
-    <div id="loader" class="loader">
-        <div class="plane-container">
-            <div class="preloader-wrapper small active">
-                <div class="spinner-layer spinner-blue">
-                    <div class="circle-clipper left">
-                        <div class="circle"></div>
-                    </div>
-                    <div class="gap-patch">
-                        <div class="circle"></div>
-                    </div>
-                    <div class="circle-clipper right">
-                        <div class="circle"></div>
-                    </div>
-                </div>
-
-                <div class="spinner-layer spinner-red">
-                    <div class="circle-clipper left">
-                        <div class="circle"></div>
-                    </div>
-                    <div class="gap-patch">
-                        <div class="circle"></div>
-                    </div>
-                    <div class="circle-clipper right">
-                        <div class="circle"></div>
-                    </div>
-                </div>
-
-                <div class="spinner-layer spinner-yellow">
-                    <div class="circle-clipper left">
-                        <div class="circle"></div>
-                    </div>
-                    <div class="gap-patch">
-                        <div class="circle"></div>
-                    </div>
-                    <div class="circle-clipper right">
-                        <div class="circle"></div>
-                    </div>
-                </div>
-
-                <div class="spinner-layer spinner-green">
-                    <div class="circle-clipper left">
-                        <div class="circle"></div>
-                    </div>
-                    <div class="gap-patch">
-                        <div class="circle"></div>
-                    </div>
-                    <div class="circle-clipper right">
-                        <div class="circle"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
     <div id="app">
         <main>
             <div id="primary" class="p-t-b-100 height-full">
                 <div class="container">
                     <div class="row">
                         <div class="col-lg-4 mx-md-auto paper-card">
-                            <div class="text-center">
-                                NLC Online 2019
+                            <div class="text-center" style="margin-bottom:15px;">
+                                <img src="<?php h($tmpl->url)?>/img/LogoGram1-min.png" style="width:120px;height:120px;object-fit:contain;">
                             </div>
                             <div>
                                 <?php if ($tmpl->http_code == 200) $tmpl->app->loadMainView() ?>
@@ -106,7 +36,6 @@
     </div>
     <?php echo $tmpl->postBody; ?>
     <?php Prompt::printPrompt() ?>
-    <script src="<?php echo $tmpl->url ?>/js/app.js"></script>
 </body>
 
 </html>
