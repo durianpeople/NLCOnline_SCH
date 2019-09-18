@@ -43,6 +43,12 @@ class NLCUser extends PuzzleUser
     }
 
     /**
+     * 
+     *
+     * @param string $password
+     * @param string $tim_name
+     * @param string $email
+     * @param string $nlc_id
      * @return self
      */
     public static function create(string $password, string $tim_name, string $email, string $nlc_id)

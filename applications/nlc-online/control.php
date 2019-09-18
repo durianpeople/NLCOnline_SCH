@@ -2,7 +2,7 @@
 
 use NLC\Base\NLCUser;
 
-if ($appProp->isMainApp) {
+if ($appProp->isMainApp && !is_cli()) {
     define("_PRODUCTION", file_exists(__ROOTDIR . "/production"));
 
     if (PuzzleUser::isAccess(USER_AUTH_EMPLOYEE)) {
@@ -41,4 +41,11 @@ if ($appProp->isMainApp) {
     } catch (\Throwable $e) {
         abort(400, _PRODUCTION && !PuzzleUser::isAccess(USER_AUTH_EMPLOYEE) ? "Cannot fulfill your request" : $e->getMessage());
     }
+}else{
+    PuzzleCLI::register(function($io, $args){
+        if($args["reguser"]){
+            NLCUser::create($args["--pass"],$args["--namatim"],$args["--email"],$args["--nlcid"]);
+            $io->out("User created!\n");
+        }
+    });
 }
