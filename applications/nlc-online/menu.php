@@ -9,11 +9,13 @@
         <span>Sesi</span>
         <i class="icon s-18 pull-right"></i>
     </a>
-    <a href="/administrator">
-        <i class="fas fa-user-shield" style="padding: 0 15px;width: 50px;text-align: center;"></i>
-        <span>Administrator</span>
-        <i class="icon s-18 pull-right"></i>
-    </a>
+    <?php if (PuzzleUser::isAccess(USER_AUTH_SU)) : ?>
+        <a href="/admin">
+            <i class="fas fa-user-shield" style="padding: 0 15px;width: 50px;text-align: center;"></i>
+            <span>Administrator</span>
+            <i class="icon s-18 pull-right"></i>
+        </a>
+    <?php endif; ?>
 <?php elseif (PuzzleUser::isAccess(USER_AUTH_REGISTERED)) : ?>
     <a href="/nlc/sesi">
         <i class="icon icon-th-list purple-text s-18"></i>

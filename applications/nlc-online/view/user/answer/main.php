@@ -159,7 +159,8 @@
                             showMessage("Tidak bisa mengirimkan jawaban", "danger");
                         }
                     }).fail(e => {
-                        showMessage(e.statusText, "danger");
+                        alert("Gagal menyimpan jawaban. Silahkan muat ulang");
+                        location.reload();
                     });
                 });
                 c.appendTo(i <= na ? fcol : scol);
