@@ -49,6 +49,18 @@ if ($appProp->isMainApp && !is_cli()) {
         if ($args["reguser"]) {
             NLCUser::create($args["--pass"], $args["--namatim"], $args["--email"], $args["--nlcid"]);
             $io->out("User created!\n");
+        } else if ($args["regusercsv"]) {
+            $csvFile = file($args["--file"]);
+            ini_set('max_execution_time', 0);
+            foreach ($csvFile as $line) {
+                $data = str_getcsv($line);
+                try {
+                    NLCUser::create($data[2], $data[1], $data[3], $data[0]);
+                } catch (\Throwable $e) {
+                    $io->out("Failed at id " . $data[0] . "\n");
+                }
+            }
+            $io->out("Done!\n");
         }
     });
 }
