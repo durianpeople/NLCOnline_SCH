@@ -106,7 +106,7 @@ use NLC\Sesi\SesiPrivate;
             }, d => {
                 s = d;
             }).fail(e => {
-                showMessage(e.statusText, "danger");
+                showMessage(e.responseJSON.error, "danger");
             });
         }
 
@@ -165,7 +165,7 @@ use NLC\Sesi\SesiPrivate;
                                     draw();
                                 }).fail(e => {
                                     jb[0].disabled = false;
-                                    showMessage(e.statusText, "danger");
+                                    showMessage(e.responseJSON.error, "danger");
                                 });
                             });
                         } else if (i.status == 1 && i.joined) {

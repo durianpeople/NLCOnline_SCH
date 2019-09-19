@@ -39,12 +39,15 @@ if ($appProp->isMainApp && !is_cli()) {
             }
         }
     } catch (\Throwable $e) {
-        abort(400, _PRODUCTION && !PuzzleUser::isAccess(USER_AUTH_EMPLOYEE) ? "Cannot fulfill your request" : $e->getMessage());
+        abort(400, _PRODUCTION && !PuzzleUser::isAccess(USER_AUTH_EMPLOYEE) ? "Cannot fulfill your request" : $e->getMessage(), false);
+        json_out([
+            "error" => $e instanceof \DatabaseError ? "Error" : $e->getMessage()
+        ]);
     }
-}else{
-    PuzzleCLI::register(function($io, $args){
-        if($args["reguser"]){
-            NLCUser::create($args["--pass"],$args["--namatim"],$args["--email"],$args["--nlcid"]);
+} else {
+    PuzzleCLI::register(function ($io, $args) {
+        if ($args["reguser"]) {
+            NLCUser::create($args["--pass"], $args["--namatim"], $args["--email"], $args["--nlcid"]);
             $io->out("User created!\n");
         }
     });

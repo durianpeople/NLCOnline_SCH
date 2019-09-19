@@ -216,7 +216,7 @@ use NLC\Sesi\SesiTerbuka;
                             }).fail(e => {
                                 table.replaceData();
                                 table.redraw();
-                                showMessage(e.statusText, "danger");
+                                showMessage(e.responseJSON.error, "danger");
                             });
                             return value;
                         } else
@@ -259,7 +259,7 @@ use NLC\Sesi\SesiTerbuka;
                             }).fail(e => {
                                 table.replaceData();
                                 table.redraw();
-                                showMessage(e.statusText, "danger");
+                                showMessage(e.responseJSON.error, "danger");
                             });
                         }
                         return s;
@@ -289,7 +289,7 @@ use NLC\Sesi\SesiTerbuka;
                             }).fail(e => {
                                 table.replaceData();
                                 table.redraw();
-                                showMessage(e.statusText, "danger");
+                                showMessage(e.responseJSON.error, "danger");
                             });
                             return value;
                         } else
@@ -319,7 +319,7 @@ use NLC\Sesi\SesiTerbuka;
                             }).fail(e => {
                                 table.replaceData();
                                 table.redraw();
-                                showMessage(e.statusText, "danger");
+                                showMessage(e.responseJSON.error, "danger");
                             });
                             return value;
                         } else
@@ -347,7 +347,7 @@ use NLC\Sesi\SesiTerbuka;
                             }).fail(e => {
                                 table.replaceData();
                                 table.redraw();
-                                showMessage(e.statusText, "danger");
+                                showMessage(e.responseJSON.error, "danger");
                             });
                         };
                         if (v) {
@@ -392,7 +392,7 @@ use NLC\Sesi\SesiTerbuka;
                                             }).fail(e => {
                                                 table.replaceData();
                                                 table.redraw();
-                                                showMessage(e.statusText, "danger");
+                                                showMessage(e.responseJSON.error, "danger");
                                             });
                                         };
                                         m.one("shown.bs.modal", () => {
@@ -448,7 +448,7 @@ use NLC\Sesi\SesiTerbuka;
                                 }).fail(e => {
                                     table.replaceData();
                                     table.redraw();
-                                    showMessage(e.statusText, "danger");
+                                    showMessage(e.responseJSON.error, "danger");
                                 });
                                 return value;
                             } else
