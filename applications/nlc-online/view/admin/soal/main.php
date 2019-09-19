@@ -112,8 +112,8 @@ use NLC\Base\Questions;
                 </div>
                 <div class="modal-body">
                     <div class="form-group row">
-                        <label for="name" class="col-sm-2 col-form-label">Nama Paket Soal</label>
-                        <div class="col-sm-10">
+                        <label for="name" class="col-sm-3 col-form-label">Nama Paket Soal</label>
+                        <div class="col-sm-9">
                             <input type="text" class="form-control" name="name" placeholder="Nama Paket Soal">
                         </div>
                     </div>
