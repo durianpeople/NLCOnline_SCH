@@ -224,7 +224,6 @@ use NLC\Base\Questions;
                 {
                     title: "Upload Kunci (CSV)",
                     formatter: function(cell, formatterParams) {
-                        // console.log(cell.getData().answer_key);
                         let a = document.createElement("input");
                         a.accept = ".csv";
                         a.type = "file";
