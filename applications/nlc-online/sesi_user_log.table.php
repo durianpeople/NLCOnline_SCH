@@ -4,6 +4,6 @@ return (new DatabaseTableBuilder)
     ->addColumn("user_id", "INT")
     ->addColumn("number", "INT")
     ->addColumn("answer", "INT")
-    ->addColumn("id", "INT")->setAsPrimaryKey()->auto_increment()
+    ->addColumn("id", "INT UNSIGNED")->setAsPrimaryKey()->auto_increment()
 
     ->createIndex("idx2", ["sesi_id", "user_id", "number"]);
