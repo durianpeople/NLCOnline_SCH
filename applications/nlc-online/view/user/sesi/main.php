@@ -1,7 +1,7 @@
 <?php
 
 use NLC\Base\Sesi;
-use NLC\Sesi\SesiSelfJoin;
+use NLC\Sesi\SesiSelfJoin; 
 use NLC\Sesi\SesiTerbuka;
 use NLC\Sesi\SesiPrivate;
 ?>
@@ -106,7 +106,7 @@ use NLC\Sesi\SesiPrivate;
             }, d => {
                 s = d;
             }).fail(e => {
-                showMessage("Gagal mengambil informasi sesi. Silahkan cek koneksi dan refresh", "danger");
+                showMessage(e.statusText, "danger");
             });
         }
 
@@ -141,7 +141,7 @@ use NLC\Sesi\SesiPrivate;
                         });
                         break;
                     case 1:
-                        timer = register_timer(el.find(".time"), Number(i.end_time), "Berakhir dalam", function() {
+                        timer = register_timer(el.find(".time"), Number(i.end_time), "Berakhir dalam", function(){
                             clearInterval(timer);
                             i.status = 2;
                             draw();
@@ -165,7 +165,7 @@ use NLC\Sesi\SesiPrivate;
                                     draw();
                                 }).fail(e => {
                                     jb[0].disabled = false;
-                                    showMessage("Hanya bisa daftar di satu sesi saja", "danger");
+                                    showMessage(e.statusText, "danger");
                                 });
                             });
                         } else if (i.status == 1 && i.joined) {
