@@ -175,7 +175,7 @@ use NLC\Base\Questions;
                                 showMessage("Data updated", "success");
                             }).fail(e => {
                                 table.replaceData();
-                                showMessage(e.statusText, "danger");
+                                showMessage(e.responseJSON.error, "danger");
                             });
                             return value;
                         } else
@@ -213,7 +213,7 @@ use NLC\Base\Questions;
                                         }
                                     }).fail(e => {
                                         table.replaceData();
-                                        showMessage(e.statusText, "danger");
+                                        showMessage(e.responseJSON.error, "danger");
                                     });
                                 }
                             }
@@ -249,7 +249,7 @@ use NLC\Base\Questions;
                                     }
                                 }).fail(e => {
                                     table.replaceData();
-                                    showMessage(e.statusText, "danger");
+                                    showMessage(e.responseJSON.error, "danger");
                                 });
                             }
                         }
