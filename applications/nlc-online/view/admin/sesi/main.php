@@ -159,7 +159,6 @@ use NLC\Sesi\SesiTerbuka;
             //return the editor element
             return editor;
         };
-        console.log(ulist);
         var user_table = new Tabulator(document.getElementById("white-list-tab"), {
             selectable: true,
             selectableRollingSelection: true,
@@ -187,7 +186,6 @@ use NLC\Sesi\SesiTerbuka;
             ]
         });
         user_table.setData(ulist);
-        console.log(user_table);
         var table = new Tabulator(document.getElementById("data"), {
             ajaxURL: "/nlc/sesi",
             ajaxConfig: "POST",
@@ -381,7 +379,6 @@ use NLC\Sesi\SesiTerbuka;
                                         let m = $("#whitelist-modal").modal('show');
                                         let b = $("#setwhitelist-btn")[0].onclick = function() {
                                             m.modal("hide");
-                                            console.log(d);
                                             $.post("/nlc/sesi", {
                                                 _token: <?php j(session_id()) ?>,
                                                 id: cell.getData().id,
