@@ -106,9 +106,7 @@ use NLC\Sesi\SesiPrivate;
             }, d => {
                 s = d;
             }).fail(e => {
-                if (e.statusText != null || e.statusText != undefined || e.statusText != "" || e.statusText == "error")
-                    showMessage(e.statusText, "danger");
-                else showMessage("Gagal mengambil informasi sesi. Silahkan cek koneksi dan refresh");
+                showMessage("Gagal mengambil informasi sesi. Silahkan cek koneksi dan refresh");
             });
         }
 
@@ -167,9 +165,7 @@ use NLC\Sesi\SesiPrivate;
                                     draw();
                                 }).fail(e => {
                                     jb[0].disabled = false;
-                                    if (e.statusText != null || e.statusText != undefined || e.statusText != "" || e.statusText == "error")
-                                        showMessage(e.statusText, "danger");
-                                    else showMessage("Hanya bisa daftar di satu sesi saja");
+                                    showMessage("Hanya bisa daftar di satu sesi saja");
                                 });
                             });
                         } else if (i.status == 1 && i.joined) {
