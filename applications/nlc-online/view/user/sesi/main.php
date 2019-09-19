@@ -106,7 +106,7 @@ use NLC\Sesi\SesiPrivate;
             }, d => {
                 s = d;
             }).fail(e => {
-                showMessage("Gagal mengambil informasi sesi. Silahkan cek koneksi dan refresh");
+                showMessage("Gagal mengambil informasi sesi. Silahkan cek koneksi dan refresh", "danger");
             });
         }
 
@@ -165,7 +165,7 @@ use NLC\Sesi\SesiPrivate;
                                     draw();
                                 }).fail(e => {
                                     jb[0].disabled = false;
-                                    showMessage("Hanya bisa daftar di satu sesi saja");
+                                    showMessage("Hanya bisa daftar di satu sesi saja", "danger");
                                 });
                             });
                         } else if (i.status == 1 && i.joined) {
