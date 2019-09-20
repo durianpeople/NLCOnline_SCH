@@ -39,7 +39,7 @@
         <aside class="main-sidebar fixed offcanvas shadow" data-toggle="offcanvas">
             <section class="sidebar">
                 <div style="padding:30px 15px">
-                    <img src="<?php echo $tmpl->url ?>/img/schematics-min.png" style="height:120px;object-fit: contain;">
+                    <img src="<?php echo $tmpl->url ?>/img/schematics2-min.png" style="height:120px;object-fit: contain;">
                 </div>
                 <ul class="sidebar-menu">
                     <li class="header"><strong>MENU</strong></li>
