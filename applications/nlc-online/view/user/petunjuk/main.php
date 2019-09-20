@@ -18,4 +18,5 @@
         </ul>
         <li>Warm-up tidak termasuk dalam penilaian penyisihan Schematics NLC 2019.</li>
     </ol>
+    <a href="/nlc/sesi" class="btn btn-primary">Daftar Sesi</a>
 </div>
