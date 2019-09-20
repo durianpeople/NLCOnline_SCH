@@ -88,7 +88,7 @@ use NLC\Sesi\SesiPrivate;
 <script>
     (function() {
         moment.locale("id");
-
+        let timediff = moment().unix() - Number(<?php echo time()?>);
         let s = <?php j(Sesi::list(true)) ?>;
         let t = $(".sesi_item.tmpl");
         let parent_list = $("#sesi_list");
@@ -113,7 +113,7 @@ use NLC\Sesi\SesiPrivate;
 
         function register_timer(timer_el, time_target, label, onrunoutoftime) {
             return setInterval(() => {
-                let d = moment(time_target) - moment().unix();
+                let d = moment(time_target) - moment().unix() + timediff;
                 let h = String(Math.floor((d) / (60 * 60))).padStart(2, '0');
                 let s = String(Math.floor((d % (60)))).padStart(2, '0');
                 let m = String(Math.floor((d % (60 * 60)) / (60))).padStart(2, '0');
