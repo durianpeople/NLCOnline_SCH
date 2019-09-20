@@ -13,6 +13,7 @@ use NLC\Sesi\SesiPrivate;
         color: #000;
         border-radius: 7px;
         overflow: hidden;
+        z-index: 1;
     }
 
     .sesi_item {
@@ -50,8 +51,8 @@ use NLC\Sesi\SesiPrivate;
 <?php echo Minifier::outCSSMin() ?>
 
 <h1>Pilih Sesi</h1><br>
-<img src="<?php h(IO::publish(my_dir("view/assets")))?>/object1.png" style="position: absolute;bottom: 100px; right: 50px; width: 100px;"/>
 <div style="max-width:600px;">
+    <img src="<?php h(IO::publish(my_dir("view/assets")))?>/object1.png" style="position: absolute;bottom: 100px; right: 50px; width: 100px;z-index: -1"/>
     <div id="sesi_list">
         <div class="sesi_item tmpl">
             <div>
