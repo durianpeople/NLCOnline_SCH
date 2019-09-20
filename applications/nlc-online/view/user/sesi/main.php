@@ -114,7 +114,7 @@ use NLC\Sesi\SesiPrivate;
         function register_timer(timer_el, time_target, label, onrunoutoftime) {
             return setInterval(() => {
                 let d = moment(time_target) - moment().unix();
-                let h = String(Math.floor((d % (60 * 60 * 24)) / (60 * 60))).padStart(2, '0');
+                let h = String(Math.floor((d) / (60 * 60))).padStart(2, '0');
                 let s = String(Math.floor((d % (60)))).padStart(2, '0');
                 let m = String(Math.floor((d % (60 * 60)) / (60))).padStart(2, '0');
                 timer_el.html(`${label} <b>${h}:${m}:${s} detik</b>`);
