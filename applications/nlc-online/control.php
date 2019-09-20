@@ -17,7 +17,7 @@ if ($appProp->isMainApp && !is_cli()) {
             abort(403);
         }
         $a = "user";
-        $d = "sesi";
+        $d = "petunjuk";
     }
 
     try {
