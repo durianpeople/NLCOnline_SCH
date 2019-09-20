@@ -19,6 +19,7 @@
     <div id="app">
         <main>
             <div id="primary" class="p-t-b-100 height-full">
+                <img src="<?php h($tmpl->url)?>/img/object1.png" style="position: absolute;top: 100px; left: 50px;"/>
                 <div class="container">
                     <div class="row">
                         <div class="col-lg-4 mx-md-auto paper-card">
