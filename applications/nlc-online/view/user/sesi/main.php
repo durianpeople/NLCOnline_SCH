@@ -1,7 +1,7 @@
 <?php
 
 use NLC\Base\Sesi;
-use NLC\Sesi\SesiSelfJoin; 
+use NLC\Sesi\SesiSelfJoin;
 use NLC\Sesi\SesiTerbuka;
 use NLC\Sesi\SesiPrivate;
 ?>
@@ -141,7 +141,7 @@ use NLC\Sesi\SesiPrivate;
                         });
                         break;
                     case 1:
-                        timer = register_timer(el.find(".time"), Number(i.end_time), "Berakhir dalam", function(){
+                        timer = register_timer(el.find(".time"), Number(i.end_time), "Berakhir dalam", function() {
                             clearInterval(timer);
                             i.status = 2;
                             draw();
@@ -155,18 +155,20 @@ use NLC\Sesi\SesiPrivate;
                         if ((i.status != 1 && i.joined) || i.status == 2) jb.remove();
                         else if (!i.joined) {
                             jb.text("Daftar ke Sesi Ini").click(e => {
-                                jb[0].disabled = true;
-                                $.post("/nlc/sesi", {
-                                    _token: <?php j(session_id()) ?>,
-                                    act: "join",
-                                    id: i.id,
-                                }, d => {
-                                    s = d;
-                                    draw();
-                                }).fail(e => {
-                                    jb[0].disabled = false;
-                                    showMessage(e.responseJSON.error, "danger");
-                                });
+                                if (confirm("Daftar ke sesi ini?")) {
+                                    jb[0].disabled = true;
+                                    $.post("/nlc/sesi", {
+                                        _token: <?php j(session_id()) ?>,
+                                        act: "join",
+                                        id: i.id,
+                                    }, d => {
+                                        s = d;
+                                        draw();
+                                    }).fail(e => {
+                                        jb[0].disabled = false;
+                                        showMessage(e.responseJSON.error, "danger");
+                                    });
+                                }
                             });
                         } else if (i.status == 1 && i.joined) {
                             jb.text("Kerjakan Soal").click(e => {
