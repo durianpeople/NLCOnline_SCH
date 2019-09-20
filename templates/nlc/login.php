@@ -23,7 +23,7 @@
                     <div class="row">
                         <div class="col-lg-4 mx-md-auto paper-card">
                             <div class="text-center" style="margin-bottom:15px;">
-                                <img src="<?php h($tmpl->url)?>/img/LogoGram1-min.png" style="width:120px;height:120px;object-fit:contain;">
+                                <img src="<?php h($tmpl->url)?>/img/LogoGram1-min.png" style="width:150px;height:150px;object-fit:contain;">
                             </div>
                             <div>
                                 <?php if ($tmpl->http_code == 200) $tmpl->app->loadMainView() ?>
