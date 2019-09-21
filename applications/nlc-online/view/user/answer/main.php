@@ -117,9 +117,11 @@
         let panel_waktu = $(".panel-waktu");
         let timer;
 
+        let timediff = moment().unix() - Number(<?php echo time()?>);
+
         function timerTick() {
             timer = setInterval(() => {
-                let d = moment(sesi.end_time) - moment().unix();
+                let d = moment(sesi.end_time) - moment().unix() + timediff;
                 let h = String(Math.floor((d % (60 * 60 * 24)) / (60 * 60))).padStart(2, '0');
                 let s = String(Math.floor((d % (60)))).padStart(2, '0');
                 let m = String(Math.floor((d % (60 * 60)) / (60))).padStart(2, '0');
