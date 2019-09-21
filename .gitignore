@@ -1,6 +1,5 @@
  
 #Ignoring PuzzleOS stuff
-applications/accounts
 applications/admin
 applications/ajax_img
 applications/bootstrap
