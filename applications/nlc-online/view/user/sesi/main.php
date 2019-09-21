@@ -163,6 +163,7 @@ use NLC\Sesi\SesiPrivate;
                                         act: "join",
                                         id: i.id,
                                     }, d => {
+                                        showMessage("Berhasil terdaftar!", "success");
                                         s = d;
                                         draw();
                                     }).fail(e => {
