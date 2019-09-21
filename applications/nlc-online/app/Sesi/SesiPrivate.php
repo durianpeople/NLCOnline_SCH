@@ -38,9 +38,9 @@ class SesiPrivate extends Sesi
     public function getStatus()
     {
         $crt = time();
+        if ($crt > $this->start_time && $crt < $this->end_time) return SesiStatus::Ongoing;
         if (!$this->isMeAllowed()) return SesiStatus::NotAllowed;
         if ($crt < $this->start_time) return SesiStatus::NotStarted;
-        if ($crt > $this->start_time && $crt < $this->end_time) return SesiStatus::Ongoing;
         return SesiStatus::Done;
     }
 

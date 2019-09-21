@@ -69,7 +69,7 @@ class SesiSelfJoin extends SesiPrivate
             } catch (\DatabaseError $e) {
                 throw new PuzzleError("Hanya bisa daftar di satu sesi saja");
             }
-        }
+        } else throw new PuzzleError("Kuota penuh!");
         \Database::unlock();
         return \Database::affectedRows() > 0;
     }
@@ -77,9 +77,9 @@ class SesiSelfJoin extends SesiPrivate
     public function getStatus()
     {
         $crt = time();
+        if ($crt > $this->start_time && $crt < $this->end_time) return SesiStatus::Ongoing;
         if ($this->getRemainingQuota() <= 0) return SesiStatus::QuotaFull;
         if ($crt < $this->start_time) return SesiStatus::NotStarted;
-        if ($crt > $this->start_time && $crt < $this->end_time) return SesiStatus::Ongoing;
         return SesiStatus::Done;
     }
 
