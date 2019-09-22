@@ -68,19 +68,6 @@ use NLC\Sesi\SesiPrivate;
                 <button class="btn btn-primary join-btn"><span class="join">Kerjakan Soal</span> <i class="fas fa-chevron-right"></i></button>
             </div>
         </div>
-        <!-- <div class="sesi_item">
-            <div>
-                <i class="fas fa-scroll"></i>
-            </div>
-            <div clas="sesi_detail">
-                <div class="sesi_judul">Warmup 4</div>
-                <div>Dimulai pukul 9.00, <span class="rtime">3:05 menit lagi</span>.</div>
-                <div>50 menit.</div>
-            </div>
-            <div>
-                <i class="fas fa-chevron-right"></i>
-            </div>
-        </div> -->
     </div>
 </div>
 
