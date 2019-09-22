@@ -1,5 +1,5 @@
-SELECT a.nlc_id, IFNULL(benar, 0) benar, IFNULL(salah, 0) salah, IFNULL(benar, 0)*4-IFNULL(salah, 0) score from (
-    SELECT nlcid.nlc_id, count(1) benar
+SELECT a.sesi_id, a.nlc_id, IFNULL(benar, 0) benar, IFNULL(salah, 0) salah, IFNULL(benar, 0)*4-IFNULL(salah, 0) score from (
+    SELECT x.sesi_id, nlcid.nlc_id, count(1) benar
     from app_nlc_sesi_user_log x inner join 
         (
             select sesi_id, user_id, `number`, max(id) max_id from app_nlc_sesi_user_log group by user_id, `number`, sesi_id
@@ -9,9 +9,9 @@ SELECT a.nlc_id, IFNULL(benar, 0) benar, IFNULL(salah, 0) salah, IFNULL(benar, 0
     inner join app_nlc_sesi ss on x.sesi_id = ss.id
     inner join app_nlc_questions_answerkey qa on ss.questions_id = qa.question_id and qa.`number` = x.`number`
     where qa.answer = x.answer
-    group by nlcid.nlc_id
+    group by nlcid.nlc_id, x.sesi_id
 ) a left outer join (
-    SELECT nlcid.nlc_id, count(1) salah
+    SELECT x.sesi_id, nlcid.nlc_id, count(1) salah
     from app_nlc_sesi_user_log x inner join 
         (
             select sesi_id, user_id, `number`, max(id) max_id from app_nlc_sesi_user_log group by user_id, `number`, sesi_id
@@ -21,12 +21,12 @@ SELECT a.nlc_id, IFNULL(benar, 0) benar, IFNULL(salah, 0) salah, IFNULL(benar, 0
     inner join app_nlc_sesi ss on x.sesi_id = ss.id
     inner join app_nlc_questions_answerkey qa on ss.questions_id = qa.question_id and qa.`number` = x.`number`
     where qa.answer <> x.answer
-    group by nlcid.nlc_id
+    group by nlcid.nlc_id, x.sesi_id
 ) b
 on a.nlc_id = b.nlc_id
 union
-SELECT a.nlc_id, IFNULL(benar, 0) benar, IFNULL(salah, 0) salah, IFNULL(benar, 0)*4-IFNULL(salah, 0) score from (
-    SELECT nlcid.nlc_id, count(1) salah
+SELECT a.sesi_id, a.nlc_id, IFNULL(benar, 0) benar, IFNULL(salah, 0) salah, IFNULL(benar, 0)*4-IFNULL(salah, 0) score from (
+    SELECT x.sesi_id, nlcid.nlc_id, count(1) salah
     from app_nlc_sesi_user_log x inner join 
         (
             select sesi_id, user_id, `number`, max(id) max_id from app_nlc_sesi_user_log group by user_id, `number`, sesi_id
@@ -36,9 +36,9 @@ SELECT a.nlc_id, IFNULL(benar, 0) benar, IFNULL(salah, 0) salah, IFNULL(benar, 0
     inner join app_nlc_sesi ss on x.sesi_id = ss.id
     inner join app_nlc_questions_answerkey qa on ss.questions_id = qa.question_id and qa.`number` = x.`number`
     where qa.answer <> x.answer
-    group by nlcid.nlc_id
+    group by nlcid.nlc_id, x.sesi_id
 ) a left outer join (
-    SELECT nlcid.nlc_id, count(1) benar
+    SELECT x.sesi_id, nlcid.nlc_id, count(1) benar
     from app_nlc_sesi_user_log x inner join 
         (
             select sesi_id, user_id, `number`, max(id) max_id from app_nlc_sesi_user_log group by user_id, `number`, sesi_id
@@ -48,7 +48,7 @@ SELECT a.nlc_id, IFNULL(benar, 0) benar, IFNULL(salah, 0) salah, IFNULL(benar, 0
     inner join app_nlc_sesi ss on x.sesi_id = ss.id
     inner join app_nlc_questions_answerkey qa on ss.questions_id = qa.question_id and qa.`number` = x.`number`
     where qa.answer = x.answer
-    group by nlcid.nlc_id
+    group by nlcid.nlc_id, x.sesi_id
 ) b
 on a.nlc_id = b.nlc_id
-order by score;
+order by score desc;
