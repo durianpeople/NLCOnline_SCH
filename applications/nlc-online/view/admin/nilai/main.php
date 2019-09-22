@@ -1,7 +1,7 @@
 <link href="https://unpkg.com/tabulator-tables@4.3.0/dist/css/semantic-ui/tabulator_semantic-ui.min.css" rel="stylesheet">
 <script type="text/javascript" src="https://unpkg.com/tabulator-tables@4.3.0/dist/js/tabulator.min.js"></script>
 <div style="padding: 50px;background: white; margin: auto; border-radius: 25px;line-height: 35px;">
-    <h1>Hasil Warm-up</h1>
+    <h1>Scoreboard</h1>
     <div id="score-tab"></div>
 </div>
 
