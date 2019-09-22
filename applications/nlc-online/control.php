@@ -63,7 +63,7 @@ if ($appProp->isMainApp && !is_cli()) {
             $io->out("Done!\n");
         } else if ($args["judge"]) {
             \Database::execute("DELETE FROM app_nlc_score");
-            $db = \Database::execute("SELECT a.sesi_id, a.user_id, IFNULL(benar, 0) benar, IFNULL(salah, 0) salah, IFNULL(benar, 0)*4-IFNULL(salah, 0) score from (
+            $db = \Database::execute("SELECT a.sesi_id, a.user_id, IFNULL(benar, 0) benar, IFNULL(salah, 0) salah, IFNULL(benar, 0)*3-IFNULL(salah, 0) score from (
                 SELECT x.sesi_id, x.user_id, count(1) benar
                 from app_nlc_sesi_user_log x inner join 
                     (
@@ -90,7 +90,7 @@ if ($appProp->isMainApp && !is_cli()) {
             ) b
             on a.user_id = b.user_id
             union
-            SELECT a.sesi_id, a.user_id, IFNULL(benar, 0) benar, IFNULL(salah, 0) salah, IFNULL(benar, 0)*4-IFNULL(salah, 0) score from (
+            SELECT a.sesi_id, a.user_id, IFNULL(benar, 0) benar, IFNULL(salah, 0) salah, IFNULL(benar, 0)*3-IFNULL(salah, 0) score from (
                 SELECT x.sesi_id, x.user_id, count(1) salah
                 from app_nlc_sesi_user_log x inner join 
                     (
