@@ -6,6 +6,7 @@ use NLC\Base\Sesi;
 use NLC\Base\NLCUser;
 use NLC\Enum\SesiStatus;
 use NLC\Throwable\SesiNotDisabled;
+use PuzzleUser;
 
 class SesiPrivate extends Sesi
 {
@@ -76,8 +77,11 @@ class SesiPrivate extends Sesi
 
     public function jsonSerialize()
     {
-        return array_merge(parent::jsonSerialize(), [
-            "whitelisted" => $this->getWhitelist()
-        ]);
+        if (PuzzleUser::isAccess(USER_AUTH_EMPLOYEE)) {
+            return array_merge(parent::jsonSerialize(), [
+                "whitelisted" => $this->getWhitelist()
+            ]);
+        }
+        else return parent::jsonSerialize();
     }
 }
