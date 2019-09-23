@@ -15,7 +15,7 @@ if ($sc) {
     $db = \Database::execute("SELECT s.`name` from app_nlc_sesi s INNER JOIN app_nlc_sesi_whitelist w on w.sesi_id = s.id and w.user_id = '?'", PuzzleUser::active()->id);
     $row = $db->fetch_assoc();
     $appProp->bundle['score'][] = [
-        "nama_sesi" => $row['name'],
+        "nama_sesi" => $row['name'] ?? "-",
         "benar" => '0',
         "salah" => '0',
         "score" => '0',
