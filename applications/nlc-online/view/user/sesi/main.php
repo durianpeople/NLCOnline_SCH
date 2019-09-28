@@ -52,7 +52,7 @@ use NLC\Sesi\SesiPrivate;
 
 <h1>Pilih Sesi</h1><br>
 <div style="max-width:600px;">
-    <img src="<?php h(IO::publish(my_dir("view/assets")))?>/object1.png" style="position: absolute;bottom: 100px; right: 50px; width: 100px;z-index: -1"/>
+    <img src="<?php h(IO::publish(my_dir("view/assets"))) ?>/object1.png" style="position: absolute;bottom: 100px; right: 50px; width: 100px;z-index: -1" />
     <div id="sesi_list">
         <div class="sesi_item tmpl">
             <div>
@@ -71,11 +71,32 @@ use NLC\Sesi\SesiPrivate;
     </div>
 </div>
 
+<div class="modal fade" tabindex="-1" role="dialog" id="announcement-pop">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="title" style="font-weight: bold">Pengumuman</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                2Mohon untuk membaca pengumuman dengan menekan tombol di bawah ini
+            </div>
+            <div class="modal-footer">
+                <a href="/nlc/pengumuman" class="btn btn-primary">Lihat Pengumuman</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="dot tmpl"></div>
+
 <?php ob_start() ?>
 <script>
     (function() {
         moment.locale("id");
-        let timediff = moment().unix() - Number(<?php echo time()?>);
+        let timediff = moment().unix() - Number(<?php echo time() ?>);
         let s = <?php j(Sesi::list(true)) ?>;
         let t = $(".sesi_item.tmpl");
         let parent_list = $("#sesi_list");
@@ -181,6 +202,15 @@ use NLC\Sesi\SesiPrivate;
         };
         refetch();
         draw();
+        let flag_pop = false;
+        let evt = new EventSource("/nlc/a");
+        evt.addEventListener("notified", function(event) {
+            $("#p-dot-p").removeClass("tmpl");
+            if (!flag_pop) {
+                $("#announcement-pop").modal();
+                flag_pop = true;
+            }
+        });
     }())
 </script>
 <?php echo Minifier::outJSMin() ?>
