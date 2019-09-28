@@ -105,27 +105,6 @@
     </div>
 </div>
 
-<div class="modal fade" tabindex="-1" role="dialog" id="announcement-pop">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="title" style="font-weight: bold">Pengumuman</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                Mohon untuk membaca pengumuman dengan menekan tombol di bawah ini
-            </div>
-            <div class="modal-footer">
-                <a href="/nlc/pengumuman" class="btn btn-primary">Lihat Pengumuman</a>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="dot tmpl"></div>
-
 <?php ob_start() ?>
 <script>
     (function() {
@@ -138,7 +117,7 @@
         let panel_waktu = $(".panel-waktu");
         let timer;
 
-        let timediff = moment().unix() - Number(<?php echo time() ?>);
+        let timediff = moment().unix() - Number(<?php echo time()?>);
 
         function timerTick() {
             timer = setInterval(() => {
@@ -162,8 +141,8 @@
         }
 
         function onAnswered() {
-            $(".abcdef input[type=radio]").parent().css('font-weight', "");
-            $(".abcdef input[type=radio]:checked").parent().css('font-weight', "bold");
+            $(".abcdef input[type=radio]").parent().css('font-weight',"");
+            $(".abcdef input[type=radio]:checked").parent().css('font-weight',"bold");
             calcTerjawab();
         }
 
@@ -204,7 +183,7 @@
                     c.find(`input[type=radio][value=${sesi.old_answer[i]}]`)[0].checked = true;
                 }
             }
-            $(".abcdef input[type=radio]:checked").parent().css('font-weight', "bold");
+            $(".abcdef input[type=radio]:checked").parent().css('font-weight',"bold");
         }
 
         $(".sss").click(() => {
@@ -219,15 +198,6 @@
         timerTick();
         drawABCDEF();
         calcTerjawab();
-        let flag_pop = false;
-        let evt = new EventSource("/nlc/a");
-        evt.addEventListener("notified", function(event) {
-            $("#p-dot-p").removeClass("tmpl");
-            if (!flag_pop) {
-                $("#announcement-pop").modal();
-                flag_pop = true;
-            }
-        });
     }())
 </script>
 <?php echo Minifier::outJSMin() ?>
