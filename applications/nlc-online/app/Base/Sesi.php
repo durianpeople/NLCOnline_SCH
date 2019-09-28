@@ -25,13 +25,13 @@ use PuzzleUser;
 abstract class Sesi implements \JsonSerializable
 {
     private static $singleton = [];
-    
+
     private $id;
     private $name;
     private $start_time;
     private $end_time;
     private $enabled;
-    
+
     /**
      * Questions assigned to this class
      *
@@ -73,14 +73,14 @@ abstract class Sesi implements \JsonSerializable
         while ($row = $db->fetch_assoc()) {
             try {
                 $a = self::load($row['id']);
-                if($only_enabled_and_whitelisted){
+                if ($only_enabled_and_whitelisted) {
                     //1. Enabled, 2. Terbuka, 3. SelfJoin
-                    if($a->enabled && ($a instanceof SesiTerbuka || $a instanceof SesiSelfJoin)){
+                    if ($a->enabled && ($a instanceof SesiTerbuka || $a instanceof SesiSelfJoin)) {
                         $ss[] = $a;
                     } else if ($a instanceof SesiPrivate && $a->isMeAllowed()) {
                         $ss[] = $a;
                     }
-                }else{
+                } else {
                     $ss[] = $a;
                 }
             } catch (\Exception $e) { }
@@ -117,18 +117,20 @@ abstract class Sesi implements \JsonSerializable
     public function __set($name, $value)
     {
         if (!PuzzleUser::isAccess(USER_AUTH_EMPLOYEE)) throw new AccessDenied;
-        if ($this->enabled == true) throw new SesiNotDisabled;
         switch ($name) {
             case "name":
+                if ($this->enabled == true) throw new SesiNotDisabled;
                 $this->name = $value;
                 break;
             case "start_time":
+                if ($this->enabled == true) throw new SesiNotDisabled;
                 $this->start_time = (int) $value;
                 break;
             case "end_time":
                 $this->end_time = (int) $value;
                 break;
             case "questions":
+                if ($this->enabled == true) throw new SesiNotDisabled;
                 if (!($value instanceof Questions) && $value !== null) throw new InvalidAction("Value is not of type Questions");
                 if (!$value->hasPDF()) throw new InvalidAction("Questions should have PDF");
                 $this->questions = $value;
@@ -143,7 +145,7 @@ abstract class Sesi implements \JsonSerializable
     {
         switch ($name) {
             case "id":
-                return (int)$this->id;
+                return (int) $this->id;
             case "name":
                 return $this->name;
             case "start_time":
@@ -167,7 +169,7 @@ abstract class Sesi implements \JsonSerializable
     }
 
     final public function getRemainingTime()
-    { 
+    {
         return $this->end_time - time();
     }
 
@@ -225,7 +227,7 @@ abstract class Sesi implements \JsonSerializable
             while ($row = $db->fetch_assoc()) {
                 $obj[$row['number']] = $row['answer'];
             }
-            return($obj);
+            return ($obj);
         }
     }
 
