@@ -97,6 +97,8 @@ use NLC\Sesi\SesiTerbuka;
             <div class="modal-body">
                 <div>
                     <div id="white-list-tab"></div>
+                    <button class="btn btn-primary" id="select-all-btn">Pilih semua</button>
+                    <button class="btn btn-secondary" id="unselect-all-btn">Reset</button>
                 </div>
             </div>
             <div class="modal-footer">
@@ -186,6 +188,18 @@ use NLC\Sesi\SesiTerbuka;
             ]
         });
         user_table.setData(ulist);
+        $("#select-all-btn").click(function(){
+            let rows = user_table.getRows();
+            rows.forEach(function(row){
+                row.select();
+            });
+        });
+        $("#unselect-all-btn").click(function(){
+            let rows = user_table.getRows();
+            rows.forEach(function(row){
+                row.deselect();
+            });
+        });
         var table = new Tabulator(document.getElementById("data"), {
             ajaxURL: "/nlc/sesi",
             ajaxConfig: "POST",
