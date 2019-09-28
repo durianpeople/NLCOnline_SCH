@@ -56,9 +56,12 @@ class Announcement implements \JsonSerializable
         return $a;
     }
 
-    public static function hasUnread(): bool
+    public static function hasUnread(bool $public = false): bool
     {
-        $db = \Database::execute("SELECT 1 FROM app_nlc_announcement a LEFT JOIN app_nlc_announcement_read r ON a.id = r.announcement_id AND `user_id` = '?' WHERE r.announcement_id is null", PuzzleUser::active()->id);
+        if (!$public)
+            $db = \Database::execute("SELECT 1 FROM app_nlc_announcement a LEFT JOIN app_nlc_announcement_read r ON a.id = r.announcement_id AND `user_id` = '?' WHERE r.announcement_id is null", PuzzleUser::active()->id);
+        else
+            $db = \Database::execute("SELECT 1 FROM app_nlc_announcement a LEFT JOIN app_nlc_announcement_read r ON a.id = r.announcement_id WHERE r.announcement_id is null");
         return (bool) ($db->num_rows > 0);
     }
     #endregion
