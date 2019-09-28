@@ -152,7 +152,7 @@
                     fcol.children().remove();
                     scol.children().remove();
                     alert("Waktu pengerjaan sudah habis!");
-                    location = "/";
+                    location = "/nlc/survey";
                 }
             }, 500);
         }
