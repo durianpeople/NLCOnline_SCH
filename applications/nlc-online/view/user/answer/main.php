@@ -212,7 +212,7 @@
                 clearInterval(timer);
                 fcol.children().remove();
                 scol.children().remove();
-                location = "/";
+                location = "/nlc/survey";
             }
         });
 
