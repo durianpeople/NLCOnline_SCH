@@ -126,6 +126,15 @@ if ($appProp->isMainApp && !is_cli()) {
                     ->setField("salah", $row['salah'])
                     ->setField("score", $row['score']);
             }
+            $ddb = \Database::execute("SELECT u.user_id FROM app_nlc_user_nlc_id u WHERE u.user_id NOT IN (SELECT l.user_id FROM app_nlc_sesi_user_log l)");
+            while($row = $ddb->fetch_assoc()) {
+                $payload[] = (new \DatabaseRowInput)
+                    ->setField("sesi_id", 0)
+                    ->setField("user_id", $row['user_id'])
+                    ->setField("benar", 0)
+                    ->setField("salah", 0)
+                    ->setField("score", 0);
+            }
             \Database::insert("app_nlc_score", $payload);
             $io->out("Done!\n");
         }
